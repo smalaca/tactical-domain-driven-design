@@ -1,3 +1,7 @@
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=smalaca_tactical-domain-driven-design&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=smalaca_tactical-domain-driven-design)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=smalaca_tactical-domain-driven-design&metric=coverage)](https://sonarcloud.io/summary/new_code?id=smalaca_tactical-domain-driven-design)
+
+
 # Tactical Domain-Driven Design
 
 ## Goal of the repository
