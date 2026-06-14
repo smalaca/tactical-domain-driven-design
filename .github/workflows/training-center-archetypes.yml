@@ -3,7 +3,7 @@ name: Training Center Archetypes
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - 'training-center/**'
   pull_request:
