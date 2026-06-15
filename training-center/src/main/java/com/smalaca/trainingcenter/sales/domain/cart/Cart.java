@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static com.smalaca.trainingcenter.sales.domain.cart.CartStatus.ACTIVE;
+import static com.smalaca.trainingcenter.sales.domain.cart.CartStatus.BLOCKED;
 
 @DomainDrivenDesign.AggregateRoot
 @Entity
@@ -87,5 +88,9 @@ public class Cart {
 
     private boolean doesNotHave(TrainingId trainingId) {
         return items.stream().noneMatch(item -> item.isFor(trainingId));
+    }
+
+    public void block() {
+        status = BLOCKED;
     }
 }

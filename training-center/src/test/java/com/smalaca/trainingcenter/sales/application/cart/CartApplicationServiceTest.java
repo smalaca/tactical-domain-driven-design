@@ -4,7 +4,6 @@ import com.smalaca.trainingcenter.sales.domain.cart.Cart;
 import com.smalaca.trainingcenter.sales.domain.cart.CartAssertion;
 import com.smalaca.trainingcenter.sales.domain.cart.CartId;
 import com.smalaca.trainingcenter.sales.domain.cart.CartRepository;
-import com.smalaca.trainingcenter.sales.domain.cart.CartStatus;
 import com.smalaca.trainingcenter.sales.domain.clock.Clock;
 import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTrainingService;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
@@ -18,10 +17,10 @@ import java.util.UUID;
 import static com.smalaca.trainingcenter.sales.domain.cart.CartAssertion.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 
 class CartApplicationServiceTest {
     private final CartRepository cartRepository = mock(CartRepository.class);
@@ -31,12 +30,10 @@ class CartApplicationServiceTest {
 
     @Test
     void shouldAddTrainingToCart() {
-        TrainingId trainingId = trainingId();
+        LocalDateTime addedAt = givenNow(LocalDateTime.of(2026, 6, 15, 21, 30));
         CartId cartId = cartId();
-        LocalDateTime addedAt = LocalDateTime.of(2026, 6, 15, 21, 30);
-        given(clock.now()).willReturn(addedAt);
-        given(openTrainingService.hasAlreadyStarted(trainingId)).willReturn(false);
-        given(cartRepository.findBy(cartId)).willReturn(Cart.active(cartId));
+        givenActiveCart(cartId);
+        TrainingId trainingId = notStartedTraining();
 
         service.addTraining(addTrainingTrainingToCartCommand(cartId, trainingId));
 
@@ -47,14 +44,37 @@ class CartApplicationServiceTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenAddingTrainingThatIsAlreadyInCart() {
-        TrainingId trainingId = trainingId();
+    void shouldAddMultipleTrainingsToCart() {
         CartId cartId = cartId();
-        given(clock.now()).willReturn(LocalDateTime.now());
-        given(openTrainingService.hasAlreadyStarted(trainingId)).willReturn(false);
-        Cart cart = Cart.active(cartId);
+        givenActiveCart(cartId);
+
+        LocalDateTime addedAtOne = givenNow(LocalDateTime.of(2026, 6, 15, 21, 30));
+        TrainingId trainingIdOne = notStartedTraining();
+        service.addTraining(addTrainingTrainingToCartCommand(cartId, trainingIdOne));
+
+        LocalDateTime addedAtTwo = givenNow(LocalDateTime.of(2026, 5, 13, 12, 13));
+        TrainingId trainingIdTwo = notStartedTraining();
+        service.addTraining(addTrainingTrainingToCartCommand(cartId, trainingIdTwo));
+
+        LocalDateTime addedAtThree = givenNow(LocalDateTime.now());
+        TrainingId trainingIdThree = notStartedTraining();
+        service.addTraining(addTrainingTrainingToCartCommand(cartId, trainingIdThree));
+
+        thenSavedCart(3)
+                .hasId(cartId)
+                .hasTrainings(3)
+                .hasTraining(trainingIdOne, addedAtOne)
+                .hasTraining(trainingIdTwo, addedAtTwo)
+                .hasTraining(trainingIdThree, addedAtThree);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenAddingTrainingThatIsAlreadyInCart() {
+        givenNow();
+        TrainingId trainingId = notStartedTraining();
+        CartId cartId = cartId();
+        Cart cart = givenActiveCart(cartId);
         cart.add(trainingId, clock, openTrainingService);
-        given(cartRepository.findBy(cartId)).willReturn(cart);
 
         Executable executable = () -> service.addTraining(addTrainingTrainingToCartCommand(cartId, trainingId));
 
@@ -64,16 +84,14 @@ class CartApplicationServiceTest {
 
     @Test
     void shouldThrowExceptionWhenAddingTrainingToFullCart() {
+        givenNow();
         CartId cartId = cartId();
-        Cart cart = Cart.active(cartId);
-        given(clock.now()).willReturn(LocalDateTime.now());
-        given(openTrainingService.hasAlreadyStarted(any())).willReturn(false);
+        Cart cart = givenActiveCart(cartId);
         for (int i = 0; i < 10; i++) {
-            cart.add(trainingId(), clock, openTrainingService);
+            cart.add(notStartedTraining(), clock, openTrainingService);
         }
-        given(cartRepository.findBy(cartId)).willReturn(cart);
 
-        Executable executable = () -> service.addTraining(addTrainingTrainingToCartCommand(cartId, trainingId()));
+        Executable executable = () -> service.addTraining(addTrainingTrainingToCartCommand(cartId, notStartedTraining()));
 
         RuntimeException actual = assertThrows(RuntimeException.class, executable);
         assertThat(actual).hasMessage("Cart is full.");
@@ -82,37 +100,35 @@ class CartApplicationServiceTest {
     @Test
     void shouldThrowExceptionWhenAddingTrainingToInactiveCart() {
         CartId cartId = cartId();
-        Cart cart = Cart.active(cartId);
-        setCartStatus(cart, CartStatus.BLOCKED);
-        given(cartRepository.findBy(cartId)).willReturn(cart);
+        givenBlockedCart(cartId);
 
-        Executable executable = () -> service.addTraining(addTrainingTrainingToCartCommand(cartId, trainingId()));
+        Executable executable = () -> service.addTraining(addTrainingTrainingToCartCommand(cartId, notStartedTraining()));
 
         RuntimeException actual = assertThrows(RuntimeException.class, executable);
         assertThat(actual).hasMessage("Cart is not active.");
     }
 
+    private void givenBlockedCart(CartId cartId) {
+        Cart cart = Cart.active(cartId);
+        cart.block();
+        given(cartRepository.findBy(cartId)).willReturn(cart);
+    }
+
     @Test
     void shouldThrowExceptionWhenAddingTrainingThatHasAlreadyStarted() {
         CartId cartId = cartId();
-        TrainingId trainingId = trainingId();
-        given(cartRepository.findBy(cartId)).willReturn(Cart.active(cartId));
-        given(openTrainingService.hasAlreadyStarted(trainingId)).willReturn(true);
+        givenActiveCart(cartId);
 
-        Executable executable = () -> service.addTraining(addTrainingTrainingToCartCommand(cartId, trainingId));
+        Executable executable = () -> service.addTraining(addTrainingTrainingToCartCommand(cartId, startedTraining()));
 
         RuntimeException actual = assertThrows(RuntimeException.class, executable);
         assertThat(actual).hasMessage("Training has already started.");
     }
 
-    private void setCartStatus(Cart cart, CartStatus status) {
-        try {
-            java.lang.reflect.Field field = Cart.class.getDeclaredField("status");
-            field.setAccessible(true);
-            field.set(cart, status);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+    private TrainingId startedTraining() {
+        TrainingId trainingId = trainingId();
+        given(openTrainingService.hasAlreadyStarted(trainingId)).willReturn(true);
+        return trainingId;
     }
 
     private AddTrainingToCartCommand addTrainingTrainingToCartCommand(CartId cartId, TrainingId trainingId) {
@@ -121,13 +137,11 @@ class CartApplicationServiceTest {
 
     @Test
     void shouldRemoveTrainingFromCart() {
+        givenNow();
         CartId cartId = cartId();
-        TrainingId trainingId = trainingId();
-        given(clock.now()).willReturn(LocalDateTime.now());
-        given(openTrainingService.hasAlreadyStarted(trainingId)).willReturn(false);
-        Cart cart = Cart.active(cartId);
+        TrainingId trainingId = notStartedTraining();
+        Cart cart = givenActiveCart(cartId);
         cart.add(trainingId, clock, openTrainingService);
-        given(cartRepository.findBy(cartId)).willReturn(cart);
 
         service.removeTraining(removeTrainingTrainingFromCartCommand(cartId, trainingId));
 
@@ -140,12 +154,33 @@ class CartApplicationServiceTest {
     void shouldThrowExceptionWhenRemovingTrainingThatIsNotInCart() {
         CartId cartId = cartId();
         TrainingId trainingId = trainingId();
-        given(cartRepository.findBy(cartId)).willReturn(Cart.active(cartId));
+        givenActiveCart(cartId);
 
         Executable executable = () -> service.removeTraining(removeTrainingTrainingFromCartCommand(cartId, trainingId));
 
         RuntimeException actual = assertThrows(RuntimeException.class, executable);
         assertThat(actual).hasMessage("Training: " + trainingId + " not found in the cart.");
+    }
+
+    private Cart givenActiveCart(CartId cartId) {
+        Cart cart = Cart.active(cartId);
+        given(cartRepository.findBy(cartId)).willReturn(cart);
+        return cart;
+    }
+
+    private void givenNow() {
+        givenNow(LocalDateTime.now());
+    }
+
+    private TrainingId notStartedTraining() {
+        TrainingId trainingId = trainingId();
+        given(openTrainingService.hasAlreadyStarted(trainingId)).willReturn(false);
+        return trainingId;
+    }
+
+    private LocalDateTime givenNow(LocalDateTime addedAt) {
+        given(clock.now()).willReturn(addedAt);
+        return addedAt;
     }
 
     private RemoveTrainingFromCartCommand removeTrainingTrainingFromCartCommand(CartId cartId, TrainingId trainingId) {
@@ -165,8 +200,12 @@ class CartApplicationServiceTest {
     }
 
     private CartAssertion thenSavedCart() {
+        return thenSavedCart(1);
+    }
+
+    private CartAssertion thenSavedCart(int wantedNumberOfInvocations) {
         ArgumentCaptor<Cart> captor = ArgumentCaptor.forClass(Cart.class);
-        then(cartRepository).should().save(captor.capture());
+        then(cartRepository).should(times(wantedNumberOfInvocations)).save(captor.capture());
 
         return assertThat(captor.getValue());
     }
