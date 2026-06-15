@@ -7,10 +7,12 @@ import com.smalaca.trainingcenter.sales.domain.cart.Cart;
 import com.smalaca.trainingcenter.sales.domain.cart.CartId;
 import com.smalaca.trainingcenter.sales.domain.cart.CartRepository;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
+import org.springframework.stereotype.Service;
 
 @DomainDrivenDesign.ApplicationLayer
 @PortsAndAdaptersArchitecture.DrivingPort
 @CommandQueryResponsibilitySegregation.Command
+@Service
 public class CartApplicationService {
     private final CartRepository cartRepository;
 
@@ -18,7 +20,7 @@ public class CartApplicationService {
         this.cartRepository = cartRepository;
     }
 
-    public void add(AddTrainingToCartCommand command) {
+    public void addTraining(AddTrainingToCartCommand command) {
         CartId cartId = new CartId(command.cartId());
         TrainingId trainingId = new TrainingId(command.trainingId());
         Cart cart = cartRepository.findBy(cartId);
@@ -28,7 +30,7 @@ public class CartApplicationService {
         cartRepository.save(cart);
     }
 
-    public void remove(RemoveTrainingFromCartCommand command) {
+    public void removeTraining(RemoveTrainingFromCartCommand command) {
         CartId cartId = new CartId(command.cartId());
         TrainingId trainingId = new TrainingId(command.trainingId());
         Cart cart = cartRepository.findBy(cartId);

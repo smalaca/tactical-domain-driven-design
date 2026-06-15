@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "CARTS")
-class CartView {
+public class CartView {
     @Id
     @Column(name = "cart_id")
     private UUID cartId;
@@ -20,11 +20,11 @@ class CartView {
     private CartView() {
     }
 
-    UUID getCartId() {
+    public UUID getCartId() {
         return cartId;
     }
 
-    List<UUID> getTrainingIds() {
+    public List<UUID> getTrainingIds() {
         return trainingIds;
     }
 }

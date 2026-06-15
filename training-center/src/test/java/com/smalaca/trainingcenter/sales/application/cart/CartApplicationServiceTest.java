@@ -25,7 +25,7 @@ class CartApplicationServiceTest {
         CartId cartId = cartId();
         given(cartRepository.findBy(cartId)).willReturn(new Cart(cartId));
 
-        service.add(addTrainingToCartCommand(cartId, trainingId));
+        service.addTraining(addTrainingTrainingToCartCommand(cartId, trainingId));
 
         thenSavedCart()
                 .hasId(cartId)
@@ -33,7 +33,7 @@ class CartApplicationServiceTest {
                 .hasTraining(trainingId);
     }
 
-    private AddTrainingToCartCommand addTrainingToCartCommand(CartId cartId, TrainingId trainingId) {
+    private AddTrainingToCartCommand addTrainingTrainingToCartCommand(CartId cartId, TrainingId trainingId) {
         return new AddTrainingToCartCommand(cartId.value(), trainingId.value());
     }
 
@@ -45,14 +45,14 @@ class CartApplicationServiceTest {
         cart.add(trainingId);
         given(cartRepository.findBy(cartId)).willReturn(cart);
 
-        service.remove(removeTrainingFromCartCommand(cartId, trainingId));
+        service.removeTraining(removeTrainingTrainingFromCartCommand(cartId, trainingId));
 
         thenSavedCart()
                 .hasId(cartId)
                 .hasTrainings(0);
     }
 
-    private RemoveTrainingFromCartCommand removeTrainingFromCartCommand(CartId cartId, TrainingId trainingId) {
+    private RemoveTrainingFromCartCommand removeTrainingTrainingFromCartCommand(CartId cartId, TrainingId trainingId) {
         return new RemoveTrainingFromCartCommand(cartId.value(), trainingId.value());
     }
 
