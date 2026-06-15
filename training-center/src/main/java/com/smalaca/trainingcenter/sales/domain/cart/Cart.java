@@ -11,7 +11,7 @@ public class Cart {
     private final CartId cartId;
     private final Set<CartItem> items = new HashSet<>();
 
-    Cart(CartId cartId) {
+    public Cart(CartId cartId) {
         this.cartId = cartId;
     }
 
