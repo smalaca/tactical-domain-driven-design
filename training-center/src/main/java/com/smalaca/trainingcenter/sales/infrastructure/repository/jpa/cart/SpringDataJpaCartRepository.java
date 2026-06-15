@@ -1,4 +1,4 @@
-package com.smalaca.trainingcenter.sales.infrastructure.persistence.jpa;
+package com.smalaca.trainingcenter.sales.infrastructure.repository.jpa.cart;
 
 import com.smalaca.annotations.architecture.PortsAndAdaptersArchitecture;
 import com.smalaca.trainingcenter.sales.domain.cart.Cart;
@@ -17,7 +17,8 @@ class SpringDataJpaCartRepository implements CartRepository {
 
     @Override
     public Cart findBy(CartId cartId) {
-        return jpaCartRepository.findById(cartId).orElseThrow();
+        return jpaCartRepository.findById(cartId)
+                .orElseThrow(() -> new CartNotFoundException(cartId));
     }
 
     @Override

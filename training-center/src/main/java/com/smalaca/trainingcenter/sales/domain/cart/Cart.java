@@ -8,6 +8,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 
@@ -22,7 +23,7 @@ public class Cart {
     @AttributeOverride(name = "value", column = @Column(name = "cart_id"))
     private CartId cartId;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "CART_ITEMS", joinColumns = @JoinColumn(name = "cart_id"))
     private Set<CartItem> items = new HashSet<>();
 

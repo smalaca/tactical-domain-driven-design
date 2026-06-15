@@ -1,4 +1,4 @@
-package com.smalaca.trainingcenter.sales.infrastructure.persistence.jpa;
+package com.smalaca.trainingcenter.sales.infrastructure.repository.jpa.cart;
 
 import com.smalaca.trainingcenter.sales.domain.cart.Cart;
 import com.smalaca.trainingcenter.sales.domain.cart.CartId;
