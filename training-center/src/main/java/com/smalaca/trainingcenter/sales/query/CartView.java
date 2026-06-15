@@ -14,17 +14,15 @@ public class CartView {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "CART_ITEMS", joinColumns = @JoinColumn(name = "cart_id"))
-    @Column(name = "training_id")
-    private List<UUID> trainingIds;
+    private List<CartItemView> items;
 
-    private CartView() {
-    }
+    private CartView() {}
 
     public UUID getCartId() {
         return cartId;
     }
 
-    public List<UUID> getTrainingIds() {
-        return trainingIds;
+    public List<CartItemView> getItems() {
+        return items;
     }
 }

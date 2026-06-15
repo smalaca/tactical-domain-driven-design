@@ -21,6 +21,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -53,29 +54,48 @@ class CartRestControllerTest {
 
     @Test
     void shouldFindAllCarts() throws Exception {
-        UUID cartId1 = existingCart(List.of(id()));
-        UUID cartId2 = existingCart(List.of(id(), id()));
+        LocalDateTime past = LocalDateTime.now().minusMinutes(1);
+        UUID trainingIdOne = id();
+        UUID trainingIdTwo = id();
+        UUID trainingIdThree = id();
+        UUID cartId1 = existingCart(List.of(trainingIdOne));
+        UUID cartId2 = existingCart(List.of(trainingIdTwo, trainingIdThree));
 
         List<CartTestDto> actual = trainingCenterClient.carts().findAll();
         assertThat(actual).hasSize(2)
                 .anySatisfy(cart -> {
                     assertThat(cart.cartId()).isEqualTo(cartId1);
-                    assertThat(cart.trainingIds()).hasSize(1);
+                    assertThat(cart.items())
+                            .hasSize(1)
+                            .allSatisfy(item -> {
+                                assertThat(item.trainingId()).isEqualTo(trainingIdOne);
+                                assertThat(item.addedAt()).isAfter(past);
+                            });
                 })
                 .anySatisfy(cart -> {
                     assertThat(cart.cartId()).isEqualTo(cartId2);
-                    assertThat(cart.trainingIds()).hasSize(2);
+                    assertThat(cart.items())
+                            .hasSize(2)
+                            .allSatisfy(item -> assertThat(item.addedAt()).isAfter(past))
+                            .anySatisfy(item -> assertThat(item.trainingId()).isEqualTo(trainingIdTwo))
+                            .anySatisfy(item -> assertThat(item.trainingId()).isEqualTo(trainingIdThree));
                 });
     }
 
     @Test
     void shouldFindCartById() throws Exception {
+        LocalDateTime past = LocalDateTime.now().minusMinutes(1);
         UUID trainingId = id();
         UUID cartId = existingCart(List.of(trainingId));
 
         CartTestDto actual = trainingCenterClient.carts().findOne(cartId);
         assertThat(actual.cartId()).isEqualTo(cartId);
-        assertThat(actual.trainingIds()).contains(trainingId);
+        assertThat(actual.items())
+                .hasSize(1)
+                .allSatisfy(item -> {
+                    assertThat(item.trainingId()).isEqualTo(trainingId);
+                    assertThat(item.addedAt()).isAfter(past);
+                });
     }
 
     @Test
