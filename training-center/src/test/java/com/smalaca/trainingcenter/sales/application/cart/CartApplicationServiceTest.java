@@ -6,11 +6,14 @@ import com.smalaca.trainingcenter.sales.domain.cart.CartId;
 import com.smalaca.trainingcenter.sales.domain.cart.CartRepository;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.ArgumentCaptor;
 
 import java.util.UUID;
 
 import static com.smalaca.trainingcenter.sales.domain.cart.CartAssertion.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
@@ -33,6 +36,20 @@ class CartApplicationServiceTest {
                 .hasTraining(trainingId);
     }
 
+    @Test
+    void shouldThrowExceptionWhenAddingTrainingThatIsAlreadyInCart() {
+        TrainingId trainingId = trainingId();
+        CartId cartId = cartId();
+        Cart cart = new Cart(cartId);
+        cart.add(trainingId);
+        given(cartRepository.findBy(cartId)).willReturn(cart);
+
+        Executable executable = () -> service.addTraining(addTrainingTrainingToCartCommand(cartId, trainingId));
+
+        RuntimeException actual = assertThrows(RuntimeException.class, executable);
+        assertThat(actual).hasMessage("Training: " + trainingId + " is already in the cart.");
+    }
+
     private AddTrainingToCartCommand addTrainingTrainingToCartCommand(CartId cartId, TrainingId trainingId) {
         return new AddTrainingToCartCommand(cartId.value(), trainingId.value());
     }
@@ -50,6 +67,18 @@ class CartApplicationServiceTest {
         thenSavedCart()
                 .hasId(cartId)
                 .hasTrainings(0);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenRemovingTrainingThatIsNotInCart() {
+        CartId cartId = cartId();
+        TrainingId trainingId = trainingId();
+        given(cartRepository.findBy(cartId)).willReturn(new Cart(cartId));
+
+        Executable executable = () -> service.removeTraining(removeTrainingTrainingFromCartCommand(cartId, trainingId));
+
+        RuntimeException actual = assertThrows(RuntimeException.class, executable);
+        assertThat(actual).hasMessage("Training: " + trainingId + " not found in the cart.");
     }
 
     private RemoveTrainingFromCartCommand removeTrainingTrainingFromCartCommand(CartId cartId, TrainingId trainingId) {
