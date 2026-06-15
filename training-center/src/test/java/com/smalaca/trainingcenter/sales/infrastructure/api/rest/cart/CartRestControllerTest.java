@@ -1,19 +1,21 @@
 package com.smalaca.trainingcenter.sales.infrastructure.api.rest.cart;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.smalaca.trainingcenter.sales.infrastructure.api.rest.client.CartTestDto;
+import com.smalaca.trainingcenter.sales.infrastructure.api.rest.client.CartTestRequest;
+import com.smalaca.trainingcenter.sales.infrastructure.api.rest.client.TrainingCenterClient;
 import com.smalaca.trainingcenter.sales.domain.cart.Cart;
 import com.smalaca.trainingcenter.sales.domain.cart.CartAssertion;
 import com.smalaca.trainingcenter.sales.domain.cart.CartTestFactory;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
 import com.smalaca.trainingcenter.sales.infrastructure.repository.jpa.cart.JpaCartTestRepository;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +25,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -36,6 +38,12 @@ class CartRestControllerTest {
 
     private final CartTestFactory cartFactory = CartTestFactory.cartTestFactory();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private TrainingCenterClient trainingCenterClient;
+
+    @BeforeEach
+    void setUp() {
+        trainingCenterClient = new TrainingCenterClient(mockMvc, objectMapper);
+    }
 
     @AfterEach
     void tearDown() {
@@ -47,11 +55,7 @@ class CartRestControllerTest {
         UUID cartId1 = existingCart(List.of(id()));
         UUID cartId2 = existingCart(List.of(id(), id()));
 
-        String response = mockMvc.perform(get("/cart"))
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-
-        List<CartTestDto> actual = objectMapper.readValue(response, new TypeReference<>() {});
+        List<CartTestDto> actual = trainingCenterClient.carts().findAll();
         assertThat(actual).hasSize(2)
                 .anySatisfy(cart -> {
                     assertThat(cart.cartId()).isEqualTo(cartId1);
@@ -68,11 +72,7 @@ class CartRestControllerTest {
         UUID trainingId = id();
         UUID cartId = existingCart(List.of(trainingId));
 
-        String response = mockMvc.perform(get("/cart/" + cartId))
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-
-        CartTestDto actual = objectMapper.readValue(response, CartTestDto.class);
+        CartTestDto actual = trainingCenterClient.carts().findOne(cartId);
         assertThat(actual.cartId()).isEqualTo(cartId);
         assertThat(actual.trainingIds()).contains(trainingId);
     }
@@ -90,12 +90,9 @@ class CartRestControllerTest {
         UUID trainingIdOne = id();
         UUID trainingIdTwo = id();
         UUID cartId = existingCart(List.of(trainingIdOne));
-        CartRequest request = new CartRequest(trainingIdTwo);
+        CartTestRequest request = new CartTestRequest(trainingIdTwo);
 
-        mockMvc.perform(post("/cart/" + cartId + "/add")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
+        trainingCenterClient.carts().addTraining(cartId, request);
 
         Optional<Cart> found = cartRepository.findById(cartId);
         assertThat(found).isPresent();
@@ -110,12 +107,9 @@ class CartRestControllerTest {
         UUID trainingIdOne = id();
         UUID trainingIdTwo = id();
         UUID cartId = existingCart(List.of(trainingIdOne, trainingIdTwo));
-        CartRequest request = new CartRequest(trainingIdOne);
+        CartTestRequest request = new CartTestRequest(trainingIdOne);
 
-        mockMvc.perform(delete("/cart/" + cartId + "/remove")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
+        trainingCenterClient.carts().removeTraining(cartId, request);
 
         Optional<Cart> found = cartRepository.findById(cartId);
         assertThat(found).isPresent();
