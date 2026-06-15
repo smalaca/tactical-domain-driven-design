@@ -5,5 +5,5 @@ import com.smalaca.annotations.architecture.DomainDrivenDesign;
 import java.util.UUID;
 
 @DomainDrivenDesign.ValueObject
-record CartId(UUID value) {
+public record CartId(UUID value) {
 }

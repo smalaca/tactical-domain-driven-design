@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @DomainDrivenDesign.AggregateRoot
-class Cart {
+public class Cart {
     private final CartId cartId;
     private final Set<CartItem> items = new HashSet<>();
 
@@ -15,7 +15,7 @@ class Cart {
         this.cartId = cartId;
     }
 
-    void add(TrainingId trainingId) {
+    public void add(TrainingId trainingId) {
         CartItem item = new CartItem(trainingId);
 
         if (items.contains(item)) {
@@ -25,7 +25,7 @@ class Cart {
         items.add(item);
     }
 
-    void remove(TrainingId trainingId) {
+    public void remove(TrainingId trainingId) {
         if (doesNotHave(trainingId)) {
             throw new TrainingNotFoundInCartException(trainingId);
         }
@@ -35,9 +35,5 @@ class Cart {
 
     private boolean doesNotHave(TrainingId trainingId) {
         return items.stream().noneMatch(item -> item.isFor(trainingId));
-    }
-
-    private boolean has(TrainingId trainingId) {
-        return items.stream().anyMatch(item -> item.isFor(trainingId));
     }
 }
