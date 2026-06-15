@@ -2,14 +2,32 @@ package com.smalaca.trainingcenter.sales.domain.cart;
 
 import com.smalaca.annotations.architecture.DomainDrivenDesign;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Table;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @DomainDrivenDesign.AggregateRoot
+@Entity
+@Table(name = "CARTS")
 public class Cart {
-    private final CartId cartId;
-    private final Set<CartItem> items = new HashSet<>();
+    @EmbeddedId
+    @AttributeOverride(name = "value", column = @Column(name = "cart_id"))
+    private CartId cartId;
+
+    @ElementCollection
+    @CollectionTable(name = "CART_ITEMS", joinColumns = @JoinColumn(name = "cart_id"))
+    private Set<CartItem> items = new HashSet<>();
+
+    private Cart() {
+    }
 
     public Cart(CartId cartId) {
         this.cartId = cartId;
