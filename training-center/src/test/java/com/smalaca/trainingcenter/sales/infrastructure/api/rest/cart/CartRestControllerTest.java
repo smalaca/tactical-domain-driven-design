@@ -1,5 +1,6 @@
 package com.smalaca.trainingcenter.sales.infrastructure.api.rest.cart;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.smalaca.trainingcenter.sales.domain.cart.Cart;
 import com.smalaca.trainingcenter.sales.domain.cart.CartAssertion;
@@ -23,7 +24,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -47,12 +47,20 @@ class CartRestControllerTest {
         UUID cartId1 = existingCart(List.of(id()));
         UUID cartId2 = existingCart(List.of(id(), id()));
 
-        mockMvc.perform(get("/cart"))
+        String response = mockMvc.perform(get("/cart"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].cartId").value(cartId1.toString()))
-                .andExpect(jsonPath("$[0].trainingIds").isArray())
-                .andExpect(jsonPath("$[1].cartId").value(cartId2.toString()))
-                .andExpect(jsonPath("$[1].trainingIds").isArray());
+                .andReturn().getResponse().getContentAsString();
+
+        List<CartTestDto> actual = objectMapper.readValue(response, new TypeReference<>() {});
+        assertThat(actual).hasSize(2)
+                .anySatisfy(cart -> {
+                    assertThat(cart.cartId()).isEqualTo(cartId1);
+                    assertThat(cart.trainingIds()).hasSize(1);
+                })
+                .anySatisfy(cart -> {
+                    assertThat(cart.cartId()).isEqualTo(cartId2);
+                    assertThat(cart.trainingIds()).hasSize(2);
+                });
     }
 
     @Test
@@ -60,10 +68,13 @@ class CartRestControllerTest {
         UUID trainingId = id();
         UUID cartId = existingCart(List.of(trainingId));
 
-        mockMvc.perform(get("/cart/" + cartId))
+        String response = mockMvc.perform(get("/cart/" + cartId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.cartId").value(cartId.toString()))
-                .andExpect(jsonPath("$.trainingIds[0]").value(trainingId.toString()));
+                .andReturn().getResponse().getContentAsString();
+
+        CartTestDto actual = objectMapper.readValue(response, CartTestDto.class);
+        assertThat(actual.cartId()).isEqualTo(cartId);
+        assertThat(actual.trainingIds()).contains(trainingId);
     }
 
     @Test
