@@ -64,7 +64,10 @@ public class CartAssertion extends AbstractAssert<CartAssertion, Cart> {
 
             Assertions.assertThat(itemsSet).anySatisfy(item -> {
                 Assertions.assertThat(item).extracting("trainingId").isEqualTo(expectedTrainingId);
-                Assertions.assertThat(item).extracting("addedAt").isEqualTo(expectedAddedAt);
+                Assertions.assertThat(item).extracting("addedAt").satisfies(addedAt -> {
+                    LocalDateTime itemAddedAt = (LocalDateTime) addedAt;
+                    Assertions.assertThat(itemAddedAt).isEqualToIgnoringNanos(expectedAddedAt);
+                });
             });
         });
 
