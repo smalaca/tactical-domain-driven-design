@@ -3,6 +3,7 @@ package com.smalaca.trainingcenter.sales.query;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 class CartViewAssertion extends AbstractAssert<CartViewAssertion, CartView> {
@@ -20,12 +21,16 @@ class CartViewAssertion extends AbstractAssert<CartViewAssertion, CartView> {
     }
 
     CartViewAssertion hasTrainings(int expected) {
-        Assertions.assertThat(actual.getTrainingIds()).hasSize(expected);
+        Assertions.assertThat(actual.getItems()).hasSize(expected);
         return this;
     }
 
-    CartViewAssertion hasTraining(UUID expected) {
-        Assertions.assertThat(actual.getTrainingIds()).contains(expected);
+    CartViewAssertion hasTraining(UUID expectedTrainingId, LocalDateTime expectedAddedAt) {
+        Assertions.assertThat(actual.getItems())
+                .anySatisfy(item -> {
+                    Assertions.assertThat(item.getTrainingId()).isEqualTo(expectedTrainingId);
+                    Assertions.assertThat(item.getAddedAt()).isEqualToIgnoringNanos(expectedAddedAt);
+                });
         return this;
     }
 }
