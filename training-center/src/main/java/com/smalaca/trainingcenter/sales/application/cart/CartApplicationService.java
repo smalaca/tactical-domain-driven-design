@@ -45,4 +45,13 @@ public class CartApplicationService {
 
         cartRepository.save(cart);
     }
+
+    public void block(BlockCartCommand command) {
+        CartId cartId = new CartId(command.cartId());
+        Cart cart = cartRepository.findBy(cartId);
+
+        cart.block();
+
+        cartRepository.save(cart);
+    }
 }

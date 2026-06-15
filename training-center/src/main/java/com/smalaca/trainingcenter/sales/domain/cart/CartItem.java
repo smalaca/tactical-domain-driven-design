@@ -17,6 +17,7 @@ class CartItem {
     @AttributeOverride(name = "value", column = @Column(name = "training_id"))
     private TrainingId trainingId;
 
+    @Column(name = "added_at")
     private LocalDateTime addedAt;
 
     private CartItem() {}

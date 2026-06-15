@@ -7,6 +7,9 @@ import org.assertj.core.api.Assertions;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+import static com.smalaca.trainingcenter.sales.domain.cart.CartStatus.ACTIVE;
+import static com.smalaca.trainingcenter.sales.domain.cart.CartStatus.BLOCKED;
+
 public class CartAssertion extends AbstractAssert<CartAssertion, Cart> {
     private CartAssertion(Cart actual) {
         super(actual, CartAssertion.class);
@@ -18,6 +21,19 @@ public class CartAssertion extends AbstractAssert<CartAssertion, Cart> {
 
     public CartAssertion hasId(CartId expected) {
         Assertions.assertThat(actual).extracting("cartId").isEqualTo(expected);
+        return this;
+    }
+
+    public CartAssertion isActive() {
+        return hasStatus(ACTIVE);
+    }
+
+    public CartAssertion isBlocked() {
+        return hasStatus(BLOCKED);
+    }
+
+    private CartAssertion hasStatus(CartStatus expected) {
+        Assertions.assertThat(actual).extracting("status").isEqualTo(expected);
         return this;
     }
 

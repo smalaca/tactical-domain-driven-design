@@ -1,6 +1,7 @@
 package com.smalaca.trainingcenter.sales.infrastructure.api.rest.cart;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.smalaca.trainingcenter.sales.infrastructure.api.rest.client.CartTestDto;
 import com.smalaca.trainingcenter.sales.infrastructure.api.rest.client.CartTestRequest;
 import com.smalaca.trainingcenter.sales.infrastructure.api.rest.client.TrainingCenterClient;
@@ -37,7 +38,7 @@ class CartRestControllerTest {
     @Autowired private JpaCartTestRepository cartRepository;
 
     private final CartTestFactory cartFactory = CartTestFactory.cartTestFactory();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
     private TrainingCenterClient trainingCenterClient;
 
     @BeforeEach

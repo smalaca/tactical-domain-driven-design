@@ -50,21 +50,21 @@ public class Cart {
 
     public void add(TrainingId trainingId, Clock clock, OpenTrainingService openTrainingService) {
         if (isNotActive()) {
-            throw new RuntimeException("Cart is not active.");
+            throw CartException.isNotActive();
         }
 
         if (isFull()) {
-            throw new RuntimeException("Cart is full.");
+            throw CartException.isFull();
         }
 
         if (openTrainingService.hasAlreadyStarted(trainingId)) {
-            throw new RuntimeException("Training has already started.");
+            throw CartException.trainingHasAlreadyStarted(trainingId);
         }
 
         CartItem item = new CartItem(trainingId, clock.now());
 
         if (items.contains(item)) {
-            throw new TrainingAlreadyInCartException(trainingId);
+            throw CartException.trainingAlreadyInCart(trainingId);
         }
 
         items.add(item);

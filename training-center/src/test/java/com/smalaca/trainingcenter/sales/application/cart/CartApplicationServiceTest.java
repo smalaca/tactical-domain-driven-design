@@ -2,6 +2,7 @@ package com.smalaca.trainingcenter.sales.application.cart;
 
 import com.smalaca.trainingcenter.sales.domain.cart.Cart;
 import com.smalaca.trainingcenter.sales.domain.cart.CartAssertion;
+import com.smalaca.trainingcenter.sales.domain.cart.CartException;
 import com.smalaca.trainingcenter.sales.domain.cart.CartId;
 import com.smalaca.trainingcenter.sales.domain.cart.CartRepository;
 import com.smalaca.trainingcenter.sales.domain.clock.Clock;
@@ -39,6 +40,7 @@ class CartApplicationServiceTest {
 
         thenSavedCart()
                 .hasId(cartId)
+                .isActive()
                 .hasTrainings(1)
                 .hasTraining(trainingId, addedAt);
     }
@@ -78,7 +80,7 @@ class CartApplicationServiceTest {
 
         Executable executable = () -> service.addTraining(addTrainingTrainingToCartCommand(cartId, trainingId));
 
-        RuntimeException actual = assertThrows(RuntimeException.class, executable);
+        CartException actual = assertThrows(CartException.class, executable);
         assertThat(actual).hasMessage("Training: " + trainingId + " is already in the cart.");
     }
 
@@ -93,7 +95,7 @@ class CartApplicationServiceTest {
 
         Executable executable = () -> service.addTraining(addTrainingTrainingToCartCommand(cartId, notStartedTraining()));
 
-        RuntimeException actual = assertThrows(RuntimeException.class, executable);
+        CartException actual = assertThrows(CartException.class, executable);
         assertThat(actual).hasMessage("Cart is full.");
     }
 
@@ -104,7 +106,7 @@ class CartApplicationServiceTest {
 
         Executable executable = () -> service.addTraining(addTrainingTrainingToCartCommand(cartId, notStartedTraining()));
 
-        RuntimeException actual = assertThrows(RuntimeException.class, executable);
+        CartException actual = assertThrows(CartException.class, executable);
         assertThat(actual).hasMessage("Cart is not active.");
     }
 
@@ -118,11 +120,12 @@ class CartApplicationServiceTest {
     void shouldThrowExceptionWhenAddingTrainingThatHasAlreadyStarted() {
         CartId cartId = cartId();
         givenActiveCart(cartId);
+        TrainingId trainingId = startedTraining();
 
-        Executable executable = () -> service.addTraining(addTrainingTrainingToCartCommand(cartId, startedTraining()));
+        Executable executable = () -> service.addTraining(addTrainingTrainingToCartCommand(cartId, trainingId));
 
-        RuntimeException actual = assertThrows(RuntimeException.class, executable);
-        assertThat(actual).hasMessage("Training has already started.");
+        CartException actual = assertThrows(CartException.class, executable);
+        assertThat(actual).hasMessage("Training: " + trainingId + " has already started.");
     }
 
     private TrainingId startedTraining() {
@@ -160,6 +163,18 @@ class CartApplicationServiceTest {
 
         RuntimeException actual = assertThrows(RuntimeException.class, executable);
         assertThat(actual).hasMessage("Training: " + trainingId + " not found in the cart.");
+    }
+
+    @Test
+    void shouldBlockCart() {
+        CartId cartId = cartId();
+        givenActiveCart(cartId);
+
+        service.block(new BlockCartCommand(cartId.value()));
+
+        thenSavedCart()
+                .hasId(cartId)
+                .isBlocked();
     }
 
     private Cart givenActiveCart(CartId cartId) {
