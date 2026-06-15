@@ -10,6 +10,7 @@ import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
 
 @DomainDrivenDesign.ApplicationLayer
 @PortsAndAdaptersArchitecture.DrivingPort
+@CommandQueryResponsibilitySegregation.Command
 public class CartApplicationService {
     private final CartRepository cartRepository;
 
@@ -17,7 +18,6 @@ public class CartApplicationService {
         this.cartRepository = cartRepository;
     }
 
-    @CommandQueryResponsibilitySegregation.Command
     public void add(AddTrainingToCartCommand command) {
         CartId cartId = new CartId(command.cartId());
         TrainingId trainingId = new TrainingId(command.trainingId());
@@ -28,7 +28,6 @@ public class CartApplicationService {
         cartRepository.save(cart);
     }
 
-    @CommandQueryResponsibilitySegregation.Command
     public void remove(RemoveTrainingFromCartCommand command) {
         CartId cartId = new CartId(command.cartId());
         TrainingId trainingId = new TrainingId(command.trainingId());

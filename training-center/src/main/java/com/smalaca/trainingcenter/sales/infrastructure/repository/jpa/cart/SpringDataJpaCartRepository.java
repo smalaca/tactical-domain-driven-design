@@ -8,10 +8,10 @@ import org.springframework.stereotype.Component;
 
 @PortsAndAdaptersArchitecture.DrivenAdapter
 @Component
-class SpringDataJpaCartRepository implements CartRepository {
+public class SpringDataJpaCartRepository implements CartRepository {
     private final JpaCartRepository jpaCartRepository;
 
-    SpringDataJpaCartRepository(JpaCartRepository jpaCartRepository) {
+    public SpringDataJpaCartRepository(JpaCartRepository jpaCartRepository) {
         this.jpaCartRepository = jpaCartRepository;
     }
 
