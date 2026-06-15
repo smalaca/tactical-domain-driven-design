@@ -4,6 +4,7 @@ import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 public class CartAssertion extends AbstractAssert<CartAssertion, Cart> {
@@ -34,6 +35,20 @@ public class CartAssertion extends AbstractAssert<CartAssertion, Cart> {
 
             Assertions.assertThat(itemsSet).anySatisfy(item -> {
                 Assertions.assertThat(item).extracting("trainingId").isEqualTo(expected);
+                Assertions.assertThat(item).extracting("addedAt").isNotNull();
+            });
+        });
+
+        return this;
+    }
+
+    public CartAssertion hasTraining(TrainingId expectedTrainingId, LocalDateTime expectedAddedAt) {
+        Assertions.assertThat(actual).extracting("items").satisfies(items -> {
+            Set<?> itemsSet = (Set<?>) items;
+
+            Assertions.assertThat(itemsSet).anySatisfy(item -> {
+                Assertions.assertThat(item).extracting("trainingId").isEqualTo(expectedTrainingId);
+                Assertions.assertThat(item).extracting("addedAt").isEqualTo(expectedAddedAt);
             });
         });
 

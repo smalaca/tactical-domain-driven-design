@@ -120,7 +120,7 @@ class CartRestControllerTest {
 
     private UUID existingCart(List<UUID> trainingIds) {
         UUID cartId = id();
-        cartRepository.save(cartFactory.createCartView(cartId, trainingIds));
+        cartRepository.save(cartFactory.createCart(cartId, trainingIds));
 
         return cartId;
     }

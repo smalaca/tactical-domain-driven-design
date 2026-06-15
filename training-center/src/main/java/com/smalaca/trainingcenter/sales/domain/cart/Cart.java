@@ -1,6 +1,8 @@
 package com.smalaca.trainingcenter.sales.domain.cart;
 
 import com.smalaca.annotations.architecture.DomainDrivenDesign;
+import com.smalaca.trainingcenter.sales.domain.clock.Clock;
+import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTrainingService;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.CollectionTable;
@@ -8,6 +10,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
@@ -15,33 +19,62 @@ import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
 
+import static com.smalaca.trainingcenter.sales.domain.cart.CartStatus.ACTIVE;
+
 @DomainDrivenDesign.AggregateRoot
 @Entity
 @Table(name = "CARTS")
 public class Cart {
+    private static final int MAX_TRAININGS = 10;
+
     @EmbeddedId
     @AttributeOverride(name = "value", column = @Column(name = "cart_id"))
     private CartId cartId;
+
+    @Enumerated(EnumType.STRING)
+    private CartStatus status;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "CART_ITEMS", joinColumns = @JoinColumn(name = "cart_id"))
     private Set<CartItem> items = new HashSet<>();
 
-    private Cart() {
+    private Cart() {}
+
+    public static Cart active(CartId cartId) {
+        Cart cart = new Cart();
+        cart.cartId = cartId;
+        cart.status = ACTIVE;
+        return cart;
     }
 
-    public Cart(CartId cartId) {
-        this.cartId = cartId;
-    }
+    public void add(TrainingId trainingId, Clock clock, OpenTrainingService openTrainingService) {
+        if (isNotActive()) {
+            throw new RuntimeException("Cart is not active.");
+        }
 
-    public void add(TrainingId trainingId) {
-        CartItem item = new CartItem(trainingId);
+        if (isFull()) {
+            throw new RuntimeException("Cart is full.");
+        }
+
+        if (openTrainingService.hasAlreadyStarted(trainingId)) {
+            throw new RuntimeException("Training has already started.");
+        }
+
+        CartItem item = new CartItem(trainingId, clock.now());
 
         if (items.contains(item)) {
             throw new TrainingAlreadyInCartException(trainingId);
         }
 
         items.add(item);
+    }
+
+    private boolean isNotActive() {
+        return !ACTIVE.equals(status);
+    }
+
+    private boolean isFull() {
+        return items.size() >= MAX_TRAININGS;
     }
 
     public void remove(TrainingId trainingId) {

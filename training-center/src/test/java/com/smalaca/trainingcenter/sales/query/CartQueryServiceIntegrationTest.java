@@ -3,6 +3,8 @@ package com.smalaca.trainingcenter.sales.query;
 import com.smalaca.trainingcenter.sales.domain.cart.Cart;
 import com.smalaca.trainingcenter.sales.domain.cart.CartId;
 import com.smalaca.trainingcenter.sales.domain.cart.CartRepository;
+import com.smalaca.trainingcenter.sales.domain.clock.Clock;
+import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTrainingService;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
 import com.smalaca.trainingcenter.sales.infrastructure.repository.jpa.cart.SpringDataJpaCartRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -13,12 +15,16 @@ import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static com.smalaca.trainingcenter.sales.query.CartViewAssertion.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 @DataJpaTest
 @Import({CartQueryService.class, SpringDataJpaCartRepository.class})
@@ -27,6 +33,9 @@ class CartQueryServiceIntegrationTest {
     @Autowired private CartQueryService queryService;
     @Autowired private JpaCartViewRepository viewRepository;
     @Autowired private CartRepository cartRepository;
+
+    private final Clock clock = mock(Clock.class);
+    private final OpenTrainingService openTrainingService = mock(OpenTrainingService.class);
 
     @AfterEach
     void tearDown() {
@@ -89,9 +98,12 @@ class CartQueryServiceIntegrationTest {
     }
 
     private void givenCartWithTrainings(UUID cartId, UUID... trainingIds) {
-        Cart cart = new Cart(new CartId(cartId));
+        given(openTrainingService.hasAlreadyStarted(any())).willReturn(false);
+        given(clock.now()).willReturn(LocalDateTime.now());
+
+        Cart cart = Cart.active(new CartId(cartId));
         for (UUID trainingId : trainingIds) {
-            cart.add(new TrainingId(trainingId));
+            cart.add(new TrainingId(trainingId), clock, openTrainingService);
         }
 
         cartRepository.save(cart);

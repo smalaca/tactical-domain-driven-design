@@ -2,8 +2,12 @@ package com.smalaca.trainingcenter.sales.domain.cart;
 
 import com.smalaca.annotations.architecture.DomainDrivenDesign;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
-import jakarta.persistence.*;
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.Embedded;
 
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @DomainDrivenDesign.Entity
@@ -13,11 +17,13 @@ class CartItem {
     @AttributeOverride(name = "value", column = @Column(name = "training_id"))
     private TrainingId trainingId;
 
-    private CartItem() {
-    }
+    private LocalDateTime addedAt;
 
-    CartItem(TrainingId trainingId) {
+    private CartItem() {}
+
+    CartItem(TrainingId trainingId, LocalDateTime addedAt) {
         this.trainingId = trainingId;
+        this.addedAt = addedAt;
     }
 
     boolean isFor(TrainingId trainingId) {
@@ -28,11 +34,11 @@ class CartItem {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         CartItem cartItem = (CartItem) o;
-        return Objects.equals(trainingId, cartItem.trainingId);
+        return Objects.equals(trainingId, cartItem.trainingId) && Objects.equals(addedAt, cartItem.addedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(trainingId);
+        return Objects.hash(trainingId, addedAt);
     }
 }
