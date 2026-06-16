@@ -2,7 +2,7 @@ package com.smalaca.trainingcenter.sales.domain.cart;
 
 import com.smalaca.annotations.architecture.DomainDrivenDesign;
 import com.smalaca.trainingcenter.sales.domain.clock.Clock;
-import com.smalaca.trainingcenter.sales.domain.offer.*;
+import com.smalaca.trainingcenter.sales.domain.offer.Offer;
 import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTraining;
 import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTrainingService;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
@@ -51,7 +51,7 @@ public class Cart {
         }
 
         if (openTrainingService.hasAlreadyStarted(trainingId)) {
-            throw CartException.trainingHasAlreadyStarted(trainingId);
+            throw CartException.trainingAlreadyStarted(trainingId);
         }
 
         CartItem item = new CartItem(trainingId, clock.now());
@@ -73,7 +73,7 @@ public class Cart {
 
     public void remove(TrainingId trainingId) {
         if (doesNotHave(trainingId)) {
-            throw new TrainingNotFoundInCartException(trainingId);
+            throw CartException.trainingNotFoundInCart(trainingId);
         }
 
         items.removeIf(item -> item.isFor(trainingId));
@@ -86,11 +86,11 @@ public class Cart {
     @DomainDrivenDesign.Factory
     public Offer choose(List<TrainingId> trainings, OpenTrainingService openTrainingService, Clock clock) {
         if (items.isEmpty()) {
-            throw new CannotCreateOfferFromEmptyCartException(cartId);
+            throw CartException.cannotCreateOfferFromEmptyCart(cartId);
         }
 
         if (isNotActive()) {
-            throw new OfferCanBeCreatedOnlyForActiveCartException(cartId);
+            throw CartException.offerCanBeCreatedOnlyForActiveCart(cartId);
         }
 
         Offer.Builder builder = new Offer.Builder(cartId, clock);
@@ -100,14 +100,14 @@ public class Cart {
 
     private void addToOffer(Offer.Builder builder, TrainingId trainingId, OpenTrainingService openTrainingService) {
         if (doesNotHave(trainingId)) {
-            throw new CannotChooseTrainingOutsideCartException(trainingId);
+            throw CartException.cannotChooseTrainingOutsideCart(trainingId);
         }
 
         OpenTraining openTraining = openTrainingService.findBy(trainingId)
-                .orElseThrow(() -> new TrainingNotFoundInCartException(trainingId));
+                .orElseThrow(() -> CartException.trainingNotFound(trainingId));
 
         if (openTraining.hasAlreadyStarted()) {
-            throw new TrainingAlreadyStartedException(trainingId);
+            throw CartException.trainingAlreadyStarted(trainingId);
         }
 
         builder.item(openTraining.trainingId(), openTraining.price());
