@@ -2,21 +2,14 @@ package com.smalaca.trainingcenter.sales.domain.cart;
 
 import com.smalaca.annotations.architecture.DomainDrivenDesign;
 import com.smalaca.trainingcenter.sales.domain.clock.Clock;
+import com.smalaca.trainingcenter.sales.domain.offer.*;
+import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTraining;
 import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTrainingService;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
-import jakarta.persistence.AttributeOverride;
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static com.smalaca.trainingcenter.sales.domain.cart.CartStatus.ACTIVE;
@@ -86,11 +79,41 @@ public class Cart {
         items.removeIf(item -> item.isFor(trainingId));
     }
 
-    private boolean doesNotHave(TrainingId trainingId) {
-        return items.stream().noneMatch(item -> item.isFor(trainingId));
-    }
-
     public void block() {
         status = BLOCKED;
+    }
+
+    @DomainDrivenDesign.Factory
+    public Offer choose(List<TrainingId> trainings, OpenTrainingService openTrainingService, Clock clock) {
+        if (items.isEmpty()) {
+            throw new CannotCreateOfferFromEmptyCartException(cartId);
+        }
+
+        if (isNotActive()) {
+            throw new OfferCanBeCreatedOnlyForActiveCartException(cartId);
+        }
+
+        Offer.Builder builder = new Offer.Builder(cartId, clock);
+        trainings.forEach(trainingId -> addToOffer(builder, trainingId, openTrainingService));
+        return builder.build();
+    }
+
+    private void addToOffer(Offer.Builder builder, TrainingId trainingId, OpenTrainingService openTrainingService) {
+        if (doesNotHave(trainingId)) {
+            throw new CannotChooseTrainingOutsideCartException(trainingId);
+        }
+
+        OpenTraining openTraining = openTrainingService.findBy(trainingId)
+                .orElseThrow(() -> new TrainingNotFoundInCartException(trainingId));
+
+        if (openTraining.hasAlreadyStarted()) {
+            throw new TrainingAlreadyStartedException(trainingId);
+        }
+
+        builder.item(openTraining.trainingId(), openTraining.price());
+    }
+
+    private boolean doesNotHave(TrainingId trainingId) {
+        return items.stream().noneMatch(item -> item.isFor(trainingId));
     }
 }
