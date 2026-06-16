@@ -2,13 +2,13 @@ package com.smalaca.trainingcenter.sales.infrastructure.api.rest.cart;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.smalaca.trainingcenter.sales.infrastructure.api.rest.client.CartTestDto;
-import com.smalaca.trainingcenter.sales.infrastructure.api.rest.client.CartTestRequest;
-import com.smalaca.trainingcenter.sales.infrastructure.api.rest.client.TrainingCenterClient;
 import com.smalaca.trainingcenter.sales.domain.cart.Cart;
 import com.smalaca.trainingcenter.sales.domain.cart.CartAssertion;
 import com.smalaca.trainingcenter.sales.domain.cart.CartTestFactory;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
+import com.smalaca.trainingcenter.sales.infrastructure.api.rest.client.CartTestDto;
+import com.smalaca.trainingcenter.sales.infrastructure.api.rest.client.CartTestRequest;
+import com.smalaca.trainingcenter.sales.infrastructure.api.rest.client.TrainingCenterClient;
 import com.smalaca.trainingcenter.sales.infrastructure.repository.jpa.cart.JpaCartTestRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -137,6 +137,21 @@ class CartRestControllerTest {
         CartAssertion.assertThat(found.get())
                 .hasTrainings(1)
                 .hasTraining(new TrainingId(trainingIdTwo));
+    }
+
+    @Test
+    void shouldBlockCart() throws Exception {
+        UUID cartId = existingCart();
+
+        trainingCenterClient.carts().block(cartId);
+
+        Optional<Cart> found = cartRepository.findById(cartId);
+        assertThat(found).isPresent();
+        CartAssertion.assertThat(found.get()).isBlocked();
+    }
+
+    private UUID existingCart() {
+        return existingCart(List.of(id()));
     }
 
     private UUID existingCart(List<UUID> trainingIds) {

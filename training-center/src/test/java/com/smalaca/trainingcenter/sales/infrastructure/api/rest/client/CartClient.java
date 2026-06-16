@@ -49,4 +49,9 @@ public class CartClient {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
     }
+
+    public void block(UUID cartId) throws Exception {
+        mockMvc.perform(post("/cart/" + cartId + "/block"))
+                .andExpect(status().isOk());
+    }
 }
