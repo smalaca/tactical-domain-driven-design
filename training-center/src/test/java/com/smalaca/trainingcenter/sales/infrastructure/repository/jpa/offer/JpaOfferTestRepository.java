@@ -17,6 +17,10 @@ public class JpaOfferTestRepository {
         return jpaOfferRepository.findById(new OfferId(offerId));
     }
 
+    public void save(Offer offer) {
+        jpaOfferRepository.save(offer);
+    }
+
     public void deleteAll() {
         jpaOfferRepository.deleteAll();
     }
