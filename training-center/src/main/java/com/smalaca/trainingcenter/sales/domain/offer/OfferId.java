@@ -7,9 +7,9 @@ import java.util.UUID;
 
 @DomainDrivenDesign.ValueObject
 @Embeddable
-record OfferId(UUID value) {
+public record OfferId(UUID value) {
     @DomainDrivenDesign.Factory
-    static OfferId offerId() {
+    public static OfferId offerId() {
         return new OfferId(UUID.randomUUID());
     }
 }

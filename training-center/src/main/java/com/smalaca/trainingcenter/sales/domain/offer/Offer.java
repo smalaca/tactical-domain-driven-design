@@ -36,7 +36,7 @@ public class Offer {
     private LocalDateTime createdAt;
     private LocalDateTime validTo;
 
-    protected Offer() {}
+    private Offer() {}
 
     private Offer(Builder builder) {
         this.offerId = builder.offerId;
@@ -44,6 +44,10 @@ public class Offer {
         this.items = builder.items;
         this.createdAt = builder.createdAt;
         this.validTo = builder.validTo;
+    }
+
+    public OfferId getOfferId() {
+        return offerId;
     }
 
     @DomainDrivenDesign.Factory

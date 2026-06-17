@@ -6,5 +6,7 @@ import com.smalaca.annotations.architecture.PortsAndAdaptersArchitecture;
 @DomainDrivenDesign.Repository
 @PortsAndAdaptersArchitecture.DrivenPort
 public interface OfferRepository {
+    Offer findBy(OfferId offerId);
+
     void save(Offer offer);
 }
