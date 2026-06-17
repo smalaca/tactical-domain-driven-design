@@ -1,4 +1,4 @@
-package com.smalaca.trainingcenter.sales.query;
+package com.smalaca.trainingcenter.sales.query.cart;
 
 import com.smalaca.annotations.architecture.CommandQueryResponsibilitySegregation;
 import org.springframework.stereotype.Service;

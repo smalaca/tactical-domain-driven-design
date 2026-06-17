@@ -5,8 +5,8 @@ import com.smalaca.trainingcenter.sales.application.cart.AddTrainingToCartComman
 import com.smalaca.trainingcenter.sales.application.cart.BlockCartCommand;
 import com.smalaca.trainingcenter.sales.application.cart.CartApplicationService;
 import com.smalaca.trainingcenter.sales.application.cart.RemoveTrainingFromCartCommand;
-import com.smalaca.trainingcenter.sales.query.CartQueryService;
-import com.smalaca.trainingcenter.sales.query.CartView;
+import com.smalaca.trainingcenter.sales.query.cart.CartQueryService;
+import com.smalaca.trainingcenter.sales.query.cart.CartView;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
