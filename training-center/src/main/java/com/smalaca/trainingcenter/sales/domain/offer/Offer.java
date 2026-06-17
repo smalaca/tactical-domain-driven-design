@@ -11,6 +11,7 @@ import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
@@ -29,7 +30,7 @@ public class Offer {
     @AttributeOverride(name = "value", column = @Column(name = "cart_id"))
     private CartId cartId;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "OFFER_ITEMS", joinColumns = @JoinColumn(name = "offer_id"))
     private Set<OfferItem> items;
 

@@ -4,10 +4,10 @@ import com.smalaca.annotations.architecture.PortsAndAdaptersArchitecture;
 import com.smalaca.trainingcenter.sales.domain.offer.Offer;
 import com.smalaca.trainingcenter.sales.domain.offer.OfferId;
 import com.smalaca.trainingcenter.sales.domain.offer.OfferRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 
 @PortsAndAdaptersArchitecture.DrivenAdapter
-@Repository
+@Component
 public class SpringDataJpaOfferRepository implements OfferRepository {
     private final JpaOfferRepository jpaOfferRepository;
 

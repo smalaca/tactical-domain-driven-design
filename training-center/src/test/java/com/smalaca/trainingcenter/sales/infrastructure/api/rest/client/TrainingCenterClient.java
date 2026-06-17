@@ -15,4 +15,8 @@ public class TrainingCenterClient {
     public CartClient carts() {
         return new CartClient(mockMvc, objectMapper);
     }
+
+    public OfferClient offers() {
+        return new OfferClient(mockMvc, objectMapper);
+    }
 }

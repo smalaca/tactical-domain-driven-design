@@ -6,6 +6,9 @@ import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTrainingS
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
 import org.springframework.stereotype.Service;
 
+import com.smalaca.trainingcenter.sales.domain.opentrainingservice.TrainingStatus;
+import com.smalaca.trainingcenter.sales.domain.offer.Money;
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @PortsAndAdaptersArchitecture.DrivenAdapter
@@ -18,6 +21,6 @@ public class DummyOpenTrainingService implements OpenTrainingService {
 
     @Override
     public Optional<OpenTraining> findBy(TrainingId trainingId) {
-        return Optional.empty();
+        return Optional.of(new OpenTraining(trainingId, TrainingStatus.NOT_STARTED, new Money(BigDecimal.valueOf(100))));
     }
 }

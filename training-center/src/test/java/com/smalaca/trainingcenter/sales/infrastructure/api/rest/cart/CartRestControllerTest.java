@@ -4,12 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.smalaca.trainingcenter.sales.domain.cart.Cart;
 import com.smalaca.trainingcenter.sales.domain.cart.CartAssertion;
+import com.smalaca.trainingcenter.sales.domain.cart.CartId;
 import com.smalaca.trainingcenter.sales.domain.cart.CartTestFactory;
+import com.smalaca.trainingcenter.sales.domain.offer.Offer;
+import com.smalaca.trainingcenter.sales.domain.offer.OfferAssertion;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
 import com.smalaca.trainingcenter.sales.infrastructure.api.rest.client.CartTestDto;
-import com.smalaca.trainingcenter.sales.infrastructure.api.rest.client.CartTestRequest;
+import com.smalaca.trainingcenter.sales.infrastructure.api.rest.client.MultipleTrainingTestRequest;
+import com.smalaca.trainingcenter.sales.infrastructure.api.rest.client.SingleTrainingTestRequest;
 import com.smalaca.trainingcenter.sales.infrastructure.api.rest.client.TrainingCenterClient;
 import com.smalaca.trainingcenter.sales.infrastructure.repository.jpa.cart.JpaCartTestRepository;
+import com.smalaca.trainingcenter.sales.infrastructure.repository.jpa.offer.JpaOfferTestRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,11 +37,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import(JpaCartTestRepository.class)
+@Import({JpaCartTestRepository.class, JpaOfferTestRepository.class})
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class CartRestControllerTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private JpaCartTestRepository cartRepository;
+    @Autowired private JpaOfferTestRepository offerRepository;
 
     private final CartTestFactory cartFactory = CartTestFactory.cartTestFactory();
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
@@ -50,6 +56,7 @@ class CartRestControllerTest {
     @AfterEach
     void tearDown() {
         cartRepository.deleteAll();
+        offerRepository.deleteAll();
     }
 
     @Test
@@ -111,7 +118,7 @@ class CartRestControllerTest {
         UUID trainingIdOne = id();
         UUID trainingIdTwo = id();
         UUID cartId = existingCart(List.of(trainingIdOne));
-        CartTestRequest request = new CartTestRequest(trainingIdTwo);
+        SingleTrainingTestRequest request = new SingleTrainingTestRequest(trainingIdTwo);
 
         trainingCenterClient.carts().addTraining(cartId, request);
 
@@ -128,7 +135,7 @@ class CartRestControllerTest {
         UUID trainingIdOne = id();
         UUID trainingIdTwo = id();
         UUID cartId = existingCart(List.of(trainingIdOne, trainingIdTwo));
-        CartTestRequest request = new CartTestRequest(trainingIdOne);
+        SingleTrainingTestRequest request = new SingleTrainingTestRequest(trainingIdOne);
 
         trainingCenterClient.carts().removeTraining(cartId, request);
 
@@ -148,6 +155,23 @@ class CartRestControllerTest {
         Optional<Cart> found = cartRepository.findById(cartId);
         assertThat(found).isPresent();
         CartAssertion.assertThat(found.get()).isBlocked();
+    }
+
+    @Test
+    void shouldChooseTrainingsFromCart() throws Exception {
+        UUID trainingId1 = id();
+        UUID trainingId2 = id();
+        UUID trainingId3 = id();
+        UUID cartId = existingCart(List.of(trainingId1, trainingId2, trainingId3));
+        MultipleTrainingTestRequest request = new MultipleTrainingTestRequest(List.of(trainingId1, trainingId2));
+
+        UUID offerId = trainingCenterClient.carts().choose(cartId, request);
+
+        Optional<Offer> found = offerRepository.findById(offerId);
+        assertThat(found).isPresent();
+        OfferAssertion.assertThat(found.get())
+                .hasCartId(new CartId(cartId))
+                .hasItems(2);
     }
 
     private UUID existingCart() {

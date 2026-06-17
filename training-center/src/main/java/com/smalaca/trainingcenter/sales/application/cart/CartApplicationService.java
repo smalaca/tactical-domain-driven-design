@@ -8,6 +8,7 @@ import com.smalaca.trainingcenter.sales.domain.cart.CartId;
 import com.smalaca.trainingcenter.sales.domain.cart.CartRepository;
 import com.smalaca.trainingcenter.sales.domain.clock.Clock;
 import com.smalaca.trainingcenter.sales.domain.offer.Offer;
+import com.smalaca.trainingcenter.sales.domain.offer.OfferId;
 import com.smalaca.trainingcenter.sales.domain.offer.OfferRepository;
 import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTrainingService;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
@@ -62,7 +63,7 @@ public class CartApplicationService {
         cartRepository.save(cart);
     }
 
-    public void choose(ChooseTrainingsCommand command) {
+    public OfferId choose(ChooseTrainingsCommand command) {
         CartId cartId = new CartId(command.cartId());
         List<TrainingId> trainingIds = asTrainingIds(command);
         Cart cart = cartRepository.findBy(cartId);
@@ -70,6 +71,8 @@ public class CartApplicationService {
         Offer offer = cart.choose(trainingIds, openTrainingService, clock);
 
         offerRepository.save(offer);
+
+        return offer.getOfferId();
     }
 
     private List<TrainingId> asTrainingIds(ChooseTrainingsCommand command) {
