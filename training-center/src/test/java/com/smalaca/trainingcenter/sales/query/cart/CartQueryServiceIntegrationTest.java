@@ -1,4 +1,4 @@
-package com.smalaca.trainingcenter.sales.query;
+package com.smalaca.trainingcenter.sales.query.cart;
 
 import com.smalaca.trainingcenter.sales.domain.cart.Cart;
 import com.smalaca.trainingcenter.sales.domain.cart.CartId;
@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.smalaca.trainingcenter.sales.query.CartViewAssertion.assertThat;
+import static com.smalaca.trainingcenter.sales.query.cart.CartViewAssertion.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;

@@ -36,17 +36,32 @@ public class CartClient {
         return objectMapper.readValue(response, CartTestDto.class);
     }
 
-    public void addTraining(UUID cartId, CartTestRequest request) throws Exception {
+    public void addTraining(UUID cartId, SingleTrainingTestRequest request) throws Exception {
         mockMvc.perform(post("/cart/" + cartId + "/add")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
     }
 
-    public void removeTraining(UUID cartId, CartTestRequest request) throws Exception {
+    public void removeTraining(UUID cartId, SingleTrainingTestRequest request) throws Exception {
         mockMvc.perform(delete("/cart/" + cartId + "/remove")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
+    }
+
+    public void block(UUID cartId) throws Exception {
+        mockMvc.perform(post("/cart/" + cartId + "/block"))
+                .andExpect(status().isOk());
+    }
+
+    public UUID choose(UUID cartId, MultipleTrainingTestRequest request) throws Exception {
+        String response = mockMvc.perform(post("/cart/" + cartId + "/choose")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        return objectMapper.readValue(response, UUID.class);
     }
 }

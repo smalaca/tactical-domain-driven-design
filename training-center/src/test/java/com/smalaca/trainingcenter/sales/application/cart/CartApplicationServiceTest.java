@@ -1,21 +1,27 @@
 package com.smalaca.trainingcenter.sales.application.cart;
 
-import com.smalaca.trainingcenter.sales.domain.cart.Cart;
-import com.smalaca.trainingcenter.sales.domain.cart.CartAssertion;
-import com.smalaca.trainingcenter.sales.domain.cart.CartException;
-import com.smalaca.trainingcenter.sales.domain.cart.CartId;
-import com.smalaca.trainingcenter.sales.domain.cart.CartRepository;
+import com.smalaca.trainingcenter.sales.domain.cart.*;
 import com.smalaca.trainingcenter.sales.domain.clock.Clock;
+import com.smalaca.trainingcenter.sales.domain.offer.Money;
+import com.smalaca.trainingcenter.sales.domain.offer.Offer;
+import com.smalaca.trainingcenter.sales.domain.offer.OfferAssertion;
+import com.smalaca.trainingcenter.sales.domain.offer.OfferRepository;
+import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTraining;
 import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTrainingService;
+import com.smalaca.trainingcenter.sales.domain.opentrainingservice.TrainingStatus;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.ArgumentCaptor;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static com.smalaca.trainingcenter.sales.domain.cart.CartAssertion.assertThat;
+import static com.smalaca.trainingcenter.sales.domain.opentrainingservice.TrainingStatus.NOT_STARTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.BDDMockito.given;
@@ -25,9 +31,10 @@ import static org.mockito.Mockito.times;
 
 class CartApplicationServiceTest {
     private final CartRepository cartRepository = mock(CartRepository.class);
+    private final OfferRepository offerRepository = mock(OfferRepository.class);
     private final Clock clock = mock(Clock.class);
     private final OpenTrainingService openTrainingService = mock(OpenTrainingService.class);
-    private final CartApplicationService service = new CartApplicationService(cartRepository, clock, openTrainingService);
+    private final CartApplicationService service = new CartApplicationService(cartRepository, offerRepository, clock, openTrainingService);
 
     @Test
     void shouldAddTrainingToCart() {
@@ -125,7 +132,7 @@ class CartApplicationServiceTest {
         Executable executable = () -> service.addTraining(addTrainingTrainingToCartCommand(cartId, trainingId));
 
         CartException actual = assertThrows(CartException.class, executable);
-        assertThat(actual).hasMessage("Training: " + trainingId + " has already started.");
+        assertThat(actual).hasMessage("Training: " + trainingId + " already started.");
     }
 
     private TrainingId startedTraining() {
@@ -177,6 +184,109 @@ class CartApplicationServiceTest {
                 .isBlocked();
     }
 
+    @Test
+    void shouldCreateOffer() {
+        LocalDateTime createdAt = LocalDateTime.of(2026, 6, 15, 21, 30);
+        LocalDateTime validTo = LocalDateTime.of(2026, 6, 25, 21, 30);
+        givenNow(createdAt);
+        CartId cartId = cartId();
+        Cart cart = givenActiveCart(cartId);
+        TrainingId trainingIdOne = notStartedTraining(money(100));
+        TrainingId trainingIdTwo = notStartedTraining(money(200));
+        cart.add(trainingIdOne, clock, openTrainingService);
+        cart.add(trainingIdTwo, clock, openTrainingService);
+
+        service.choose(new ChooseTrainingsCommand(cartId.value(), List.of(trainingIdOne.value(), trainingIdTwo.value())));
+
+        thenSavedOffer()
+                .hasCartId(cartId)
+                .hasItems(2)
+                .hasItem(trainingIdOne, money(100))
+                .hasItem(trainingIdTwo, money(200))
+                .hasOfferId()
+                .hasCreatedAt(createdAt)
+                .hasValidTo(validTo);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenCreatingOfferFromEmptyCart() {
+        CartId cartId = cartId();
+        givenActiveCart(cartId);
+
+        Executable executable = () -> service.choose(new ChooseTrainingsCommand(cartId.value(), List.of(id())));
+
+        CartException actual = assertThrows(CartException.class, executable);
+        assertThat(actual).hasMessage("Cannot create offer from empty cart: " + cartId);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenCreatingOfferForInactiveCart() {
+        givenNow();
+        CartId cartId = cartId();
+        Cart cart = givenActiveCart(cartId);
+        cart.add(notStartedTraining(), clock, openTrainingService);
+        cart.block();
+
+        Executable executable = () -> service.choose(new ChooseTrainingsCommand(cartId.value(), List.of(id())));
+
+        CartException actual = assertThrows(CartException.class, executable);
+        assertThat(actual).hasMessage("Offer can be created only for active cart: " + cartId);
+    }
+
+    @Test
+    void shouldThrowExceptionWhenChoosingTrainingOutsideCart() {
+        givenNow();
+        CartId cartId = cartId();
+        Cart cart = givenActiveCart(cartId);
+        cart.add(notStartedTraining(), clock, openTrainingService);
+        TrainingId trainingId = trainingId();
+
+        Executable executable = () -> service.choose(new ChooseTrainingsCommand(cartId.value(), List.of(trainingId.value())));
+
+        CartException actual = assertThrows(CartException.class, executable);
+        assertThat(actual).hasMessage("Training: " + trainingId + " cannot be chosen outside the cart.");
+    }
+
+    @Test
+    void shouldThrowExceptionWhenChoosingTrainingThatDoesNotExist() {
+        givenNow();
+        CartId cartId = cartId();
+        Cart cart = givenActiveCart(cartId);
+        TrainingId trainingId = givenNonExistingTraining();
+        cart.add(trainingId, clock, openTrainingService);
+
+        Executable executable = () -> service.choose(new ChooseTrainingsCommand(cartId.value(), List.of(trainingId.value())));
+
+        CartException actual = assertThrows(CartException.class, executable);
+        assertThat(actual).hasMessage("Training: " + trainingId + " not found.");
+    }
+
+    private TrainingId givenNonExistingTraining() {
+        TrainingId trainingId = trainingId();
+        given(openTrainingService.findBy(trainingId)).willReturn(Optional.empty());
+        return trainingId;
+    }
+
+    @Test
+    void shouldThrowExceptionWhenChoosingTrainingThatAlreadyStarted() {
+        givenNow();
+        CartId cartId = cartId();
+        Cart cart = givenActiveCart(cartId);
+        TrainingId trainingId = givenStartedTraining();
+        cart.add(trainingId, clock, openTrainingService);
+
+        Executable executable = () -> service.choose(new ChooseTrainingsCommand(cartId.value(), List.of(trainingId.value())));
+
+        CartException actual = assertThrows(CartException.class, executable);
+        assertThat(actual).hasMessage("Training: " + trainingId + " already started.");
+    }
+
+    private TrainingId givenStartedTraining() {
+        TrainingId trainingId = trainingId();
+        given(openTrainingService.findBy(trainingId)).willReturn(Optional.of(new OpenTraining(trainingId, TrainingStatus.STARTED, money(100))));
+        return trainingId;
+    }
+
     private Cart givenActiveCart(CartId cartId) {
         Cart cart = Cart.active(cartId);
         given(cartRepository.findBy(cartId)).willReturn(cart);
@@ -188,8 +298,17 @@ class CartApplicationServiceTest {
     }
 
     private TrainingId notStartedTraining() {
+        return notStartedTraining(money(100));
+    }
+
+    private Money money(int amount) {
+        return new Money(BigDecimal.valueOf(amount));
+    }
+
+    private TrainingId notStartedTraining(Money price) {
         TrainingId trainingId = trainingId();
         given(openTrainingService.hasAlreadyStarted(trainingId)).willReturn(false);
+        given(openTrainingService.findBy(trainingId)).willReturn(Optional.of(new OpenTraining(trainingId, NOT_STARTED, price)));
         return trainingId;
     }
 
@@ -223,5 +342,12 @@ class CartApplicationServiceTest {
         then(cartRepository).should(times(wantedNumberOfInvocations)).save(captor.capture());
 
         return assertThat(captor.getValue());
+    }
+
+    private OfferAssertion thenSavedOffer() {
+        ArgumentCaptor<Offer> captor = ArgumentCaptor.forClass(Offer.class);
+        then(offerRepository).should().save(captor.capture());
+
+        return OfferAssertion.assertThat(captor.getValue());
     }
 }

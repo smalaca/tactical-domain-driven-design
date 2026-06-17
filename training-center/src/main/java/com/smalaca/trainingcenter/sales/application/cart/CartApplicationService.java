@@ -7,9 +7,15 @@ import com.smalaca.trainingcenter.sales.domain.cart.Cart;
 import com.smalaca.trainingcenter.sales.domain.cart.CartId;
 import com.smalaca.trainingcenter.sales.domain.cart.CartRepository;
 import com.smalaca.trainingcenter.sales.domain.clock.Clock;
+import com.smalaca.trainingcenter.sales.domain.offer.Offer;
+import com.smalaca.trainingcenter.sales.domain.offer.OfferId;
+import com.smalaca.trainingcenter.sales.domain.offer.OfferRepository;
 import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTrainingService;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @DomainDrivenDesign.ApplicationLayer
 @PortsAndAdaptersArchitecture.DrivingPort
@@ -17,11 +23,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class CartApplicationService {
     private final CartRepository cartRepository;
+    private final OfferRepository offerRepository;
     private final Clock clock;
     private final OpenTrainingService openTrainingService;
 
-    CartApplicationService(CartRepository cartRepository, Clock clock, OpenTrainingService openTrainingService) {
+    CartApplicationService(CartRepository cartRepository, OfferRepository offerRepository, Clock clock, OpenTrainingService openTrainingService) {
         this.cartRepository = cartRepository;
+        this.offerRepository = offerRepository;
         this.clock = clock;
         this.openTrainingService = openTrainingService;
     }
@@ -53,5 +61,23 @@ public class CartApplicationService {
         cart.block();
 
         cartRepository.save(cart);
+    }
+
+    public OfferId choose(ChooseTrainingsCommand command) {
+        CartId cartId = new CartId(command.cartId());
+        List<TrainingId> trainingIds = asTrainingIds(command);
+        Cart cart = cartRepository.findBy(cartId);
+
+        Offer offer = cart.choose(trainingIds, openTrainingService, clock);
+
+        offerRepository.save(offer);
+
+        return offer.getOfferId();
+    }
+
+    private List<TrainingId> asTrainingIds(ChooseTrainingsCommand command) {
+        return command.trainingIds().stream()
+                .map(TrainingId::new)
+                .collect(Collectors.toList());
     }
 }

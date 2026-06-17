@@ -2,10 +2,12 @@ package com.smalaca.trainingcenter.sales.infrastructure.api.rest.cart;
 
 import com.smalaca.annotations.architecture.PortsAndAdaptersArchitecture;
 import com.smalaca.trainingcenter.sales.application.cart.AddTrainingToCartCommand;
+import com.smalaca.trainingcenter.sales.application.cart.BlockCartCommand;
 import com.smalaca.trainingcenter.sales.application.cart.CartApplicationService;
+import com.smalaca.trainingcenter.sales.application.cart.ChooseTrainingsCommand;
 import com.smalaca.trainingcenter.sales.application.cart.RemoveTrainingFromCartCommand;
-import com.smalaca.trainingcenter.sales.query.CartQueryService;
-import com.smalaca.trainingcenter.sales.query.CartView;
+import com.smalaca.trainingcenter.sales.query.cart.CartQueryService;
+import com.smalaca.trainingcenter.sales.query.cart.CartView;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,5 +52,15 @@ class CartRestController {
     @DeleteMapping("/{cartId}/remove")
     void remove(@PathVariable UUID cartId, @RequestBody CartRequest request) {
         applicationService.removeTraining(new RemoveTrainingFromCartCommand(cartId, request.trainingId()));
+    }
+
+    @PostMapping("/{cartId}/block")
+    void block(@PathVariable UUID cartId) {
+        applicationService.block(new BlockCartCommand(cartId));
+    }
+
+    @PostMapping("/{cartId}/choose")
+    UUID choose(@PathVariable UUID cartId, @RequestBody CartChooseRequest request) {
+        return applicationService.choose(new ChooseTrainingsCommand(cartId, request.trainingIds())).value();
     }
 }

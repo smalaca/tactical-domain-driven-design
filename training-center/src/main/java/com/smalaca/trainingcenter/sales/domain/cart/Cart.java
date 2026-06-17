@@ -2,21 +2,14 @@ package com.smalaca.trainingcenter.sales.domain.cart;
 
 import com.smalaca.annotations.architecture.DomainDrivenDesign;
 import com.smalaca.trainingcenter.sales.domain.clock.Clock;
+import com.smalaca.trainingcenter.sales.domain.offer.Offer;
+import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTraining;
 import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTrainingService;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
-import jakarta.persistence.AttributeOverride;
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.Column;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static com.smalaca.trainingcenter.sales.domain.cart.CartStatus.ACTIVE;
@@ -58,7 +51,7 @@ public class Cart {
         }
 
         if (openTrainingService.hasAlreadyStarted(trainingId)) {
-            throw CartException.trainingHasAlreadyStarted(trainingId);
+            throw CartException.trainingAlreadyStarted(trainingId);
         }
 
         CartItem item = new CartItem(trainingId, clock.now());
@@ -80,17 +73,47 @@ public class Cart {
 
     public void remove(TrainingId trainingId) {
         if (doesNotHave(trainingId)) {
-            throw new TrainingNotFoundInCartException(trainingId);
+            throw CartException.trainingNotFoundInCart(trainingId);
         }
 
         items.removeIf(item -> item.isFor(trainingId));
     }
 
-    private boolean doesNotHave(TrainingId trainingId) {
-        return items.stream().noneMatch(item -> item.isFor(trainingId));
-    }
-
     public void block() {
         status = BLOCKED;
+    }
+
+    @DomainDrivenDesign.Factory
+    public Offer choose(List<TrainingId> trainings, OpenTrainingService openTrainingService, Clock clock) {
+        if (items.isEmpty()) {
+            throw CartException.cannotCreateOfferFromEmptyCart(cartId);
+        }
+
+        if (isNotActive()) {
+            throw CartException.offerCanBeCreatedOnlyForActiveCart(cartId);
+        }
+
+        Offer.Builder builder = new Offer.Builder(cartId, clock);
+        trainings.forEach(trainingId -> addToOffer(builder, trainingId, openTrainingService));
+        return builder.build();
+    }
+
+    private void addToOffer(Offer.Builder builder, TrainingId trainingId, OpenTrainingService openTrainingService) {
+        if (doesNotHave(trainingId)) {
+            throw CartException.cannotChooseTrainingOutsideCart(trainingId);
+        }
+
+        OpenTraining openTraining = openTrainingService.findBy(trainingId)
+                .orElseThrow(() -> CartException.trainingNotFound(trainingId));
+
+        if (openTraining.hasAlreadyStarted()) {
+            throw CartException.trainingAlreadyStarted(trainingId);
+        }
+
+        builder.item(openTraining.trainingId(), openTraining.price());
+    }
+
+    private boolean doesNotHave(TrainingId trainingId) {
+        return items.stream().noneMatch(item -> item.isFor(trainingId));
     }
 }

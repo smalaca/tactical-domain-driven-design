@@ -1,4 +1,4 @@
-package com.smalaca.trainingcenter.sales.query;
+package com.smalaca.trainingcenter.sales.query.cart;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

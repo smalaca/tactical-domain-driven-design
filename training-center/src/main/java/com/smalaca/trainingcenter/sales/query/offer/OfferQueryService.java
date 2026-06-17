@@ -1,4 +1,4 @@
-package com.smalaca.trainingcenter.sales.query;
+package com.smalaca.trainingcenter.sales.query.offer;
 
 import com.smalaca.annotations.architecture.CommandQueryResponsibilitySegregation;
 import org.springframework.stereotype.Service;
@@ -10,18 +10,18 @@ import java.util.stream.StreamSupport;
 
 @CommandQueryResponsibilitySegregation.Query
 @Service
-public class CartQueryService {
-    private final JpaCartViewRepository repository;
+public class OfferQueryService {
+    private final JpaOfferViewRepository repository;
 
-    CartQueryService(JpaCartViewRepository repository) {
+    OfferQueryService(JpaOfferViewRepository repository) {
         this.repository = repository;
     }
 
-    public Optional<CartView> findOneById(UUID cartId) {
-        return repository.findById(cartId);
+    public Optional<OfferView> findOneById(UUID offerId) {
+        return repository.findById(offerId);
     }
 
-    public List<CartView> findAll() {
+    public List<OfferView> findAll() {
         return StreamSupport.stream(repository.findAll().spliterator(), false)
                 .toList();
     }
