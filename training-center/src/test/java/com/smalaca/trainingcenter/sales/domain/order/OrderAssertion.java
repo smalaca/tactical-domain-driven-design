@@ -43,9 +43,4 @@ public class OrderAssertion extends AbstractAssert<OrderAssertion, Order> {
         Assertions.assertThat(actual).extracting("orderId").isEqualTo(expected);
         return this;
     }
-
-    public OrderAssertion hasOrderId() {
-        Assertions.assertThat(actual).extracting("orderId").isNotNull();
-        return this;
-    }
 }
