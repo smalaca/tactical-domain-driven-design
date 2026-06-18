@@ -2,7 +2,7 @@ package com.smalaca.trainingcenter.sales.application.cart;
 
 import com.smalaca.trainingcenter.sales.domain.cart.*;
 import com.smalaca.trainingcenter.sales.domain.clock.Clock;
-import com.smalaca.trainingcenter.sales.domain.offer.Money;
+import com.smalaca.trainingcenter.sales.domain.money.Money;
 import com.smalaca.trainingcenter.sales.domain.offer.Offer;
 import com.smalaca.trainingcenter.sales.domain.offer.OfferAssertion;
 import com.smalaca.trainingcenter.sales.domain.offer.OfferRepository;
@@ -199,6 +199,7 @@ class CartApplicationServiceTest {
         service.choose(new ChooseTrainingsCommand(cartId.value(), List.of(trainingIdOne.value(), trainingIdTwo.value())));
 
         thenSavedOffer()
+                .isCreated()
                 .hasCartId(cartId)
                 .hasItems(2)
                 .hasItem(trainingIdOne, money(100))

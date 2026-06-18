@@ -2,7 +2,7 @@ package com.smalaca.trainingcenter.sales.query.offer;
 
 import com.smalaca.trainingcenter.sales.domain.cart.CartId;
 import com.smalaca.trainingcenter.sales.domain.clock.Clock;
-import com.smalaca.trainingcenter.sales.domain.offer.Money;
+import com.smalaca.trainingcenter.sales.domain.money.Money;
 import com.smalaca.trainingcenter.sales.domain.offer.Offer;
 import com.smalaca.trainingcenter.sales.domain.offer.OfferRepository;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;

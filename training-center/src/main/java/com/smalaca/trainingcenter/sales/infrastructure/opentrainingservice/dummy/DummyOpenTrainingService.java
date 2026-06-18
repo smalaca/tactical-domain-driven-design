@@ -7,7 +7,7 @@ import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
 import org.springframework.stereotype.Service;
 
 import com.smalaca.trainingcenter.sales.domain.opentrainingservice.TrainingStatus;
-import com.smalaca.trainingcenter.sales.domain.offer.Money;
+import com.smalaca.trainingcenter.sales.domain.money.Money;
 import java.math.BigDecimal;
 import java.util.Optional;
 

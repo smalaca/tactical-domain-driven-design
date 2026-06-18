@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.smalaca.trainingcenter.sales.domain.cart.CartId;
 import com.smalaca.trainingcenter.sales.domain.clock.Clock;
-import com.smalaca.trainingcenter.sales.domain.offer.Money;
+import com.smalaca.trainingcenter.sales.domain.money.Money;
 import com.smalaca.trainingcenter.sales.domain.offer.Offer;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
 import com.smalaca.trainingcenter.sales.infrastructure.api.rest.client.OfferTestDto;
