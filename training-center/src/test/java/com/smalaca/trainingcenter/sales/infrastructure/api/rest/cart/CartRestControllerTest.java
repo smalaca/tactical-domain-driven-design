@@ -32,6 +32,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.smalaca.trainingcenter.sales.infrastructure.api.rest.cart.CartTestDtoAssertion.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -69,24 +70,18 @@ class CartRestControllerTest {
         UUID cartId2 = existingCart(List.of(trainingIdTwo, trainingIdThree));
 
         List<CartTestDto> actual = trainingCenterClient.carts().findAll();
-        assertThat(actual).hasSize(2)
-                .anySatisfy(cart -> {
-                    assertThat(cart.cartId()).isEqualTo(cartId1);
-                    assertThat(cart.items())
-                            .hasSize(1)
-                            .allSatisfy(item -> {
-                                assertThat(item.trainingId()).isEqualTo(trainingIdOne);
-                                assertThat(item.addedAt()).isAfter(past);
-                            });
-                })
-                .anySatisfy(cart -> {
-                    assertThat(cart.cartId()).isEqualTo(cartId2);
-                    assertThat(cart.items())
-                            .hasSize(2)
-                            .allSatisfy(item -> assertThat(item.addedAt()).isAfter(past))
-                            .anySatisfy(item -> assertThat(item.trainingId()).isEqualTo(trainingIdTwo))
-                            .anySatisfy(item -> assertThat(item.trainingId()).isEqualTo(trainingIdThree));
-                });
+        assertThat(actual).hasSize(2);
+        assertThat(actual)
+                .anySatisfy(cart -> assertThat(cart)
+                        .hasCartId(cartId1)
+                        .hasItems(1)
+                        .hasItemAddedAfter(trainingIdOne, past))
+                .anySatisfy(cart -> assertThat(cart)
+                        .hasCartId(cartId2)
+                        .hasItems(2)
+                        .allItemsAddedAfter(past)
+                        .hasItem(trainingIdTwo)
+                        .hasItem(trainingIdThree));
     }
 
     @Test
@@ -96,13 +91,10 @@ class CartRestControllerTest {
         UUID cartId = existingCart(List.of(trainingId));
 
         CartTestDto actual = trainingCenterClient.carts().findOne(cartId);
-        assertThat(actual.cartId()).isEqualTo(cartId);
-        assertThat(actual.items())
-                .hasSize(1)
-                .allSatisfy(item -> {
-                    assertThat(item.trainingId()).isEqualTo(trainingId);
-                    assertThat(item.addedAt()).isAfter(past);
-                });
+        assertThat(actual)
+                .hasCartId(cartId)
+                .hasItems(1)
+                .hasItemAddedAfter(trainingId, past);
     }
 
     @Test
