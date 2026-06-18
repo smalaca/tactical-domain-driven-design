@@ -1,8 +1,7 @@
-package com.smalaca.trainingcenter.sales.domain.offer;
+package com.smalaca.trainingcenter.sales.domain.order;
 
 import com.smalaca.annotations.architecture.DomainDrivenDesign;
 import com.smalaca.trainingcenter.sales.domain.money.Money;
-import com.smalaca.trainingcenter.sales.domain.order.Order;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
@@ -11,7 +10,7 @@ import jakarta.persistence.Embedded;
 
 @DomainDrivenDesign.Entity
 @Embeddable
-class OfferItem {
+class OrderItem {
     @Embedded
     @AttributeOverride(name = "value", column = @Column(name = "training_id"))
     private TrainingId trainingId;
@@ -20,18 +19,10 @@ class OfferItem {
     @AttributeOverride(name = "amount", column = @Column(name = "price"))
     private Money price;
 
-    private OfferItem() {}
+    private OrderItem() {}
 
-    OfferItem(TrainingId trainingId, Money price) {
+    OrderItem(TrainingId trainingId, Money price) {
         this.trainingId = trainingId;
         this.price = price;
-    }
-
-    void accept(Order.Builder builder) {
-        builder.item(trainingId, price);
-    }
-
-    TrainingId trainingId() {
-        return trainingId;
     }
 }

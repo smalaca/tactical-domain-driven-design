@@ -2,7 +2,7 @@ package com.smalaca.trainingcenter.sales.infrastructure.repository.jpa.offer;
 
 import com.smalaca.trainingcenter.sales.domain.cart.CartId;
 import com.smalaca.trainingcenter.sales.domain.clock.Clock;
-import com.smalaca.trainingcenter.sales.domain.offer.Money;
+import com.smalaca.trainingcenter.sales.domain.money.Money;
 import com.smalaca.trainingcenter.sales.domain.offer.Offer;
 import com.smalaca.trainingcenter.sales.domain.offer.OfferId;
 import com.smalaca.trainingcenter.sales.domain.offer.OfferRepository;
@@ -74,7 +74,6 @@ class SpringDataJpaOfferRepositoryIntegrationTest {
     }
 
     @Test
-    @Transactional
     void shouldSaveAndLoadOfferWithItems() {
         LocalDateTime createdAt = givenNow();
         CartId cartId = new CartId(UUID.randomUUID());
