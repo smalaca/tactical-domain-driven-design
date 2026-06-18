@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class OfferClient {
@@ -33,5 +34,13 @@ public class OfferClient {
                 .andReturn().getResponse().getContentAsString();
 
         return objectMapper.readValue(response, OfferTestDto.class);
+    }
+
+    public UUID accept(UUID offerId) throws Exception {
+        String response = mockMvc.perform(post("/offer/" + offerId + "/accept"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        return UUID.fromString(response.replace("\"", ""));
     }
 }

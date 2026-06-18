@@ -9,6 +9,7 @@ import com.smalaca.trainingcenter.sales.domain.offer.acceptance.OfferAcceptanceS
 import com.smalaca.trainingcenter.sales.domain.offer.OfferId;
 import com.smalaca.trainingcenter.sales.domain.offer.OfferRepository;
 import com.smalaca.trainingcenter.sales.domain.order.Order;
+import com.smalaca.trainingcenter.sales.domain.order.OrderId;
 import com.smalaca.trainingcenter.sales.domain.order.OrderRepository;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +30,7 @@ public class OfferApplicationService {
         this.clock = clock;
     }
 
-    public void accept(AcceptOfferCommand command) {
+    public OrderId accept(AcceptOfferCommand command) {
         OfferId offerId = new OfferId(command.offerId());
         Offer offer = offerRepository.findBy(offerId);
 
@@ -37,5 +38,7 @@ public class OfferApplicationService {
 
         orderRepository.save(order);
         offerRepository.save(offer);
+
+        return order.getOrderId();
     }
 }

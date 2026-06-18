@@ -13,6 +13,7 @@ import com.smalaca.trainingcenter.sales.domain.offer.acceptance.TrainingAlreadyS
 import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTrainingService;
 import com.smalaca.trainingcenter.sales.domain.order.Order;
 import com.smalaca.trainingcenter.sales.domain.order.OrderAssertion;
+import com.smalaca.trainingcenter.sales.domain.order.OrderId;
 import com.smalaca.trainingcenter.sales.domain.order.OrderRepository;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
 import org.junit.jupiter.api.Test;
@@ -66,14 +67,14 @@ class OfferApplicationServiceTest {
         OfferId offerId = existingOffer(TRAINING_ID_1, TRAINING_ID_2);
         given(clock.now()).willReturn(NOW);
 
-        service.accept(new AcceptOfferCommand(offerId.value()));
+        OrderId orderId = service.accept(new AcceptOfferCommand(offerId.value()));
 
         thenOrderSaved()
+                .hasOrderId(orderId)
                 .hasOfferId(offerId)
                 .hasItems(2)
                 .hasItem(TRAINING_ID_1, PRICE)
-                .hasItem(TRAINING_ID_2, PRICE)
-                .hasOrderId();
+                .hasItem(TRAINING_ID_2, PRICE);
     }
 
     private OrderAssertion thenOrderSaved() {
