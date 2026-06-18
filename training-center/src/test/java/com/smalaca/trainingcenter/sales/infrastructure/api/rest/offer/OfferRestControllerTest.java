@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static com.smalaca.trainingcenter.sales.infrastructure.api.rest.offer.OfferTestDtoAssertion.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -70,30 +71,19 @@ class OfferRestControllerTest {
         UUID offerId2 = existingOffer(cartId2, List.of(new OfferItem(trainingId2a, price2a), new OfferItem(trainingId2b, price2b)));
 
         List<OfferTestDto> actual = trainingCenterClient.offers().findAll();
-
-        assertThat(actual).hasSize(2)
-                .anySatisfy(offer -> {
-                    assertThat(offer.offerId()).isEqualTo(offerId1);
-                    assertThat(offer.cartId()).isEqualTo(cartId1);
-                    assertThat(offer.items()).hasSize(1)
-                            .anySatisfy(item -> {
-                                assertThat(item.trainingId()).isEqualTo(trainingId1);
-                                assertThat(item.price()).isEqualByComparingTo(BigDecimal.valueOf(price1));
-                            });
-                })
-                .anySatisfy(offer -> {
-                    assertThat(offer.offerId()).isEqualTo(offerId2);
-                    assertThat(offer.cartId()).isEqualTo(cartId2);
-                    assertThat(offer.items()).hasSize(2)
-                            .anySatisfy(item -> {
-                                assertThat(item.trainingId()).isEqualTo(trainingId2a);
-                                assertThat(item.price()).isEqualByComparingTo(BigDecimal.valueOf(price2a));
-                            })
-                            .anySatisfy(item -> {
-                                assertThat(item.trainingId()).isEqualTo(trainingId2b);
-                                assertThat(item.price()).isEqualByComparingTo(BigDecimal.valueOf(price2b));
-                            });
-                });
+        assertThat(actual).hasSize(2);
+        assertThat(actual)
+                .anySatisfy(offer -> assertThat(offer)
+                        .hasOfferId(offerId1)
+                        .hasCartId(cartId1)
+                        .hasItems(1)
+                        .hasItem(trainingId1, price1))
+                .anySatisfy(offer -> assertThat(offer)
+                        .hasOfferId(offerId2)
+                        .hasCartId(cartId2)
+                        .hasItems(2)
+                        .hasItem(trainingId2a, price2a)
+                        .hasItem(trainingId2b, price2b));
     }
 
     @Test
@@ -105,13 +95,11 @@ class OfferRestControllerTest {
 
         OfferTestDto actual = trainingCenterClient.offers().findOne(offerId);
 
-        assertThat(actual.offerId()).isEqualTo(offerId);
-        assertThat(actual.cartId()).isEqualTo(cartId);
-        assertThat(actual.items()).hasSize(1)
-                .anySatisfy(item -> {
-                    assertThat(item.trainingId()).isEqualTo(trainingId);
-                    assertThat(item.price()).isEqualByComparingTo(BigDecimal.valueOf(price));
-                });
+        assertThat(actual)
+                .hasOfferId(offerId)
+                .hasCartId(cartId)
+                .hasItems(1)
+                .hasItem(trainingId, price);
     }
 
     @Test
