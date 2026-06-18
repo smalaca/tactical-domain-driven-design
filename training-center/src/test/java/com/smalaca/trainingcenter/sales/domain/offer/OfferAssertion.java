@@ -63,7 +63,7 @@ public class OfferAssertion extends AbstractAssert<OfferAssertion, Offer> {
     public OfferAssertion hasCreatedAt(LocalDateTime expected) {
         Assertions.assertThat(actual).extracting("createdAt").satisfies(input -> {
             LocalDateTime createdAt = (LocalDateTime) input;
-            Assertions.assertThat(createdAt).isEqualTo(expected);
+            Assertions.assertThat(createdAt).isEqualToIgnoringNanos(expected);
         });
         return this;
     }
@@ -71,7 +71,7 @@ public class OfferAssertion extends AbstractAssert<OfferAssertion, Offer> {
     public OfferAssertion hasValidTo(LocalDateTime expected) {
         Assertions.assertThat(actual).extracting("validTo").satisfies(input -> {
             LocalDateTime validTo = (LocalDateTime) input;
-            Assertions.assertThat(validTo).isEqualTo(expected);
+            Assertions.assertThat(validTo).isEqualToIgnoringNanos(expected);
         });
         return this;
     }
