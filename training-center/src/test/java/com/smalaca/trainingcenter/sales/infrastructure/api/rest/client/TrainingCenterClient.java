@@ -19,4 +19,8 @@ public class TrainingCenterClient {
     public OfferClient offers() {
         return new OfferClient(mockMvc, objectMapper);
     }
+
+    public OrderClient orders() {
+        return new OrderClient(mockMvc, objectMapper);
+    }
 }
