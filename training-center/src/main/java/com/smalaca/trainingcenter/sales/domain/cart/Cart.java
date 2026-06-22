@@ -32,7 +32,7 @@ public class Cart {
     @CollectionTable(name = "CART_ITEMS", joinColumns = @JoinColumn(name = "cart_id"))
     private Set<CartItem> items = new HashSet<>();
 
-    private Cart() {}
+    protected Cart() {}
 
     public static Cart active(CartId cartId) {
         Cart cart = new Cart();
@@ -43,21 +43,21 @@ public class Cart {
 
     public void add(TrainingId trainingId, Clock clock, OpenTrainingService openTrainingService) {
         if (isNotActive()) {
-            throw CartException.isNotActive();
+            throw CartException.isNotActive(cartId);
         }
 
         if (isFull()) {
-            throw CartException.isFull();
+            throw CartException.isFull(cartId);
         }
 
         if (openTrainingService.hasAlreadyStarted(trainingId)) {
-            throw CartException.trainingAlreadyStarted(trainingId);
+            throw CartException.trainingAlreadyStarted(cartId, trainingId);
         }
 
         CartItem item = new CartItem(trainingId, clock.now());
 
         if (items.contains(item)) {
-            throw CartException.trainingAlreadyInCart(trainingId);
+            throw CartException.trainingAlreadyInCart(cartId, trainingId);
         }
 
         items.add(item);
@@ -73,14 +73,30 @@ public class Cart {
 
     public void remove(TrainingId trainingId) {
         if (doesNotHave(trainingId)) {
-            throw CartException.trainingNotFoundInCart(trainingId);
+            throw CartException.trainingNotFoundInCart(cartId, trainingId);
         }
 
         items.removeIf(item -> item.isFor(trainingId));
     }
 
     public void block() {
+        if (BLOCKED.equals(status)) {
+            throw CartException.isAlreadyBlocked(cartId);
+        }
+
         status = BLOCKED;
+    }
+
+    public void empty() {
+        items.clear();
+    }
+
+    public void unblock() {
+        if (ACTIVE.equals(status)) {
+            throw CartException.isAlreadyActive(cartId);
+        }
+
+        status = ACTIVE;
     }
 
     @DomainDrivenDesign.Factory
@@ -100,14 +116,14 @@ public class Cart {
 
     private void addToOffer(Offer.Builder builder, TrainingId trainingId, OpenTrainingService openTrainingService) {
         if (doesNotHave(trainingId)) {
-            throw CartException.cannotChooseTrainingOutsideCart(trainingId);
+            throw CartException.cannotChooseTrainingOutsideCart(cartId, trainingId);
         }
 
         OpenTraining openTraining = openTrainingService.findBy(trainingId)
-                .orElseThrow(() -> CartException.trainingNotFound(trainingId));
+                .orElseThrow(() -> CartException.trainingNotFound(cartId, trainingId));
 
         if (openTraining.hasAlreadyStarted()) {
-            throw CartException.trainingAlreadyStarted(trainingId);
+            throw CartException.trainingAlreadyStarted(cartId, trainingId);
         }
 
         builder.item(openTraining.trainingId(), openTraining.price());

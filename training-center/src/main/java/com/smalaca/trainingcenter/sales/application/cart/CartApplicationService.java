@@ -15,6 +15,7 @@ import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @DomainDrivenDesign.ApplicationLayer
@@ -54,11 +55,29 @@ public class CartApplicationService {
         cartRepository.save(cart);
     }
 
-    public void block(BlockCartCommand command) {
-        CartId cartId = new CartId(command.cartId());
+    public void block(UUID cartIdentifier) {
+        CartId cartId = new CartId(cartIdentifier);
         Cart cart = cartRepository.findBy(cartId);
 
         cart.block();
+
+        cartRepository.save(cart);
+    }
+
+    public void empty(UUID cartIdentifier) {
+        CartId cartId = new CartId(cartIdentifier);
+        Cart cart = cartRepository.findBy(cartId);
+
+        cart.empty();
+
+        cartRepository.save(cart);
+    }
+
+    public void unblock(UUID cartIdentifier) {
+        CartId cartId = new CartId(cartIdentifier);
+        Cart cart = cartRepository.findBy(cartId);
+
+        cart.unblock();
 
         cartRepository.save(cart);
     }

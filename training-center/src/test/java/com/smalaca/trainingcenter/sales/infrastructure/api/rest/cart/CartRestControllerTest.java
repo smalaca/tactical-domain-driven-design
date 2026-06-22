@@ -150,6 +150,31 @@ class CartRestControllerTest {
     }
 
     @Test
+    void shouldUnblockCart() throws Exception {
+        UUID cartId = existingCart();
+        trainingCenterClient.carts().block(cartId);
+
+        trainingCenterClient.carts().unblock(cartId);
+
+        Optional<Cart> found = cartRepository.findById(cartId);
+        assertThat(found).isPresent();
+        CartAssertion.assertThat(found.get()).isActive();
+    }
+
+    @Test
+    void shouldEmptyCart() throws Exception {
+        UUID trainingIdOne = id();
+        UUID trainingIdTwo = id();
+        UUID cartId = existingCart(List.of(trainingIdOne, trainingIdTwo));
+
+        trainingCenterClient.carts().empty(cartId);
+
+        Optional<Cart> found = cartRepository.findById(cartId);
+        assertThat(found).isPresent();
+        CartAssertion.assertThat(found.get()).hasTrainings(0);
+    }
+
+    @Test
     void shouldChooseTrainingsFromCart() throws Exception {
         UUID trainingId1 = id();
         UUID trainingId2 = id();

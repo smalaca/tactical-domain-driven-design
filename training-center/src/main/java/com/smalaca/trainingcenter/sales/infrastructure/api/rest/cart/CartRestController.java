@@ -2,7 +2,6 @@ package com.smalaca.trainingcenter.sales.infrastructure.api.rest.cart;
 
 import com.smalaca.annotations.architecture.PortsAndAdaptersArchitecture;
 import com.smalaca.trainingcenter.sales.application.cart.AddTrainingToCartCommand;
-import com.smalaca.trainingcenter.sales.application.cart.BlockCartCommand;
 import com.smalaca.trainingcenter.sales.application.cart.CartApplicationService;
 import com.smalaca.trainingcenter.sales.application.cart.ChooseTrainingsCommand;
 import com.smalaca.trainingcenter.sales.application.cart.RemoveTrainingFromCartCommand;
@@ -56,7 +55,17 @@ class CartRestController {
 
     @PostMapping("/{cartId}/block")
     void block(@PathVariable UUID cartId) {
-        applicationService.block(new BlockCartCommand(cartId));
+        applicationService.block(cartId);
+    }
+
+    @PostMapping("/{cartId}/unblock")
+    void unblock(@PathVariable UUID cartId) {
+        applicationService.unblock(cartId);
+    }
+
+    @DeleteMapping("/{cartId}/empty")
+    void empty(@PathVariable UUID cartId) {
+        applicationService.empty(cartId);
     }
 
     @PostMapping("/{cartId}/choose")

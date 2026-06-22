@@ -55,6 +55,16 @@ public class CartClient {
                 .andExpect(status().isOk());
     }
 
+    public void unblock(UUID cartId) throws Exception {
+        mockMvc.perform(post("/cart/" + cartId + "/unblock"))
+                .andExpect(status().isOk());
+    }
+
+    public void empty(UUID cartId) throws Exception {
+        mockMvc.perform(delete("/cart/" + cartId + "/empty"))
+                .andExpect(status().isOk());
+    }
+
     public UUID choose(UUID cartId, MultipleTrainingTestRequest request) throws Exception {
         String response = mockMvc.perform(post("/cart/" + cartId + "/choose")
                         .contentType(MediaType.APPLICATION_JSON)
