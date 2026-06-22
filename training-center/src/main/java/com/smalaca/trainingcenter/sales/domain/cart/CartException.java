@@ -42,4 +42,12 @@ public class CartException extends RuntimeException {
     static CartException trainingAlreadyStarted(TrainingId trainingId) {
         return new CartException("Training: " + trainingId + " already started.");
     }
+
+    static CartException isAlreadyBlocked() {
+        return new CartException("Cart is already blocked.");
+    }
+
+    static CartException isAlreadyActive() {
+        return new CartException("Cart is already active.");
+    }
 }

@@ -80,6 +80,10 @@ public class Cart {
     }
 
     public void block() {
+        if (BLOCKED.equals(status)) {
+            throw CartException.isAlreadyBlocked();
+        }
+
         status = BLOCKED;
     }
 
@@ -88,6 +92,10 @@ public class Cart {
     }
 
     public void unblock() {
+        if (ACTIVE.equals(status)) {
+            throw CartException.isAlreadyActive();
+        }
+
         status = ACTIVE;
     }
 

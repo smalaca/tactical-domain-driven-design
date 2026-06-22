@@ -198,6 +198,29 @@ class CartApplicationServiceTest {
     }
 
     @Test
+    void shouldThrowExceptionWhenBlockingBlockedCart() {
+        CartId cartId = cartId();
+        Cart cart = givenActiveCart(cartId);
+        cart.block();
+
+        Executable executable = () -> service.block(cartId.value());
+
+        CartException actual = assertThrows(CartException.class, executable);
+        assertThat(actual).hasMessage("Cart is already blocked.");
+    }
+
+    @Test
+    void shouldThrowExceptionWhenUnblockingActiveCart() {
+        CartId cartId = cartId();
+        givenActiveCart(cartId);
+
+        Executable executable = () -> service.unblock(cartId.value());
+
+        CartException actual = assertThrows(CartException.class, executable);
+        assertThat(actual).hasMessage("Cart is already active.");
+    }
+
+    @Test
     void shouldEmptyCart() {
         givenNow();
         CartId cartId = cartId();
