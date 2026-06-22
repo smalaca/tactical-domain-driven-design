@@ -7,20 +7,20 @@ public class CartException extends RuntimeException {
         super(message);
     }
 
-    static CartException trainingAlreadyInCart(TrainingId trainingId) {
-        return new CartException("Training: " + trainingId + " is already in the cart.");
+    static CartException trainingAlreadyInCart(CartId cartId, TrainingId trainingId) {
+        return new CartException("Training: " + trainingId + " is already in the cart: " + cartId);
     }
 
-    static CartException isNotActive() {
-        return new CartException("Cart is not active.");
+    static CartException isNotActive(CartId cartId) {
+        return new CartException("Cart: " + cartId + " is not active.");
     }
 
-    static CartException isFull() {
-        return new CartException("Cart is full.");
+    static CartException isFull(CartId cartId) {
+        return new CartException("Cart: " + cartId + " is full.");
     }
 
-    static CartException trainingNotFoundInCart(TrainingId trainingId) {
-        return new CartException("Training: " + trainingId + " not found in the cart.");
+    static CartException trainingNotFoundInCart(CartId cartId, TrainingId trainingId) {
+        return new CartException("Training: " + trainingId + " not found in the cart: " + cartId);
     }
 
     static CartException cannotCreateOfferFromEmptyCart(CartId cartId) {
@@ -31,23 +31,23 @@ public class CartException extends RuntimeException {
         return new CartException("Offer can be created only for active cart: " + cartId);
     }
 
-    static CartException cannotChooseTrainingOutsideCart(TrainingId trainingId) {
-        return new CartException("Training: " + trainingId + " cannot be chosen outside the cart.");
+    static CartException cannotChooseTrainingOutsideCart(CartId cartId, TrainingId trainingId) {
+        return new CartException("Training: " + trainingId + " cannot be chosen outside the cart: " + cartId);
     }
 
-    static CartException trainingNotFound(TrainingId trainingId) {
-        return new CartException("Training: " + trainingId + " not found.");
+    static CartException trainingNotFound(CartId cartId, TrainingId trainingId) {
+        return new CartException("Training: " + trainingId + " not found in cart: " + cartId);
     }
 
-    static CartException trainingAlreadyStarted(TrainingId trainingId) {
-        return new CartException("Training: " + trainingId + " already started.");
+    static CartException trainingAlreadyStarted(CartId cartId, TrainingId trainingId) {
+        return new CartException("Training: " + trainingId + " already started in cart: " + cartId);
     }
 
-    static CartException isAlreadyBlocked() {
-        return new CartException("Cart is already blocked.");
+    static CartException isAlreadyBlocked(CartId cartId) {
+        return new CartException("Cart: " + cartId + " is already blocked.");
     }
 
-    static CartException isAlreadyActive() {
-        return new CartException("Cart is already active.");
+    static CartException isAlreadyActive(CartId cartId) {
+        return new CartException("Cart: " + cartId + " is already active.");
     }
 }
