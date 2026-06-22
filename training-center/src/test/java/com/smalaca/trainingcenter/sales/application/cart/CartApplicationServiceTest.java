@@ -177,11 +177,39 @@ class CartApplicationServiceTest {
         CartId cartId = cartId();
         givenActiveCart(cartId);
 
-        service.block(new BlockCartCommand(cartId.value()));
+        service.block(cartId.value());
 
         thenSavedCart()
                 .hasId(cartId)
                 .isBlocked();
+    }
+
+    @Test
+    void shouldUnblockCart() {
+        CartId cartId = cartId();
+        Cart cart = givenActiveCart(cartId);
+        cart.block();
+
+        service.unblock(cartId.value());
+
+        thenSavedCart()
+                .hasId(cartId)
+                .isActive();
+    }
+
+    @Test
+    void shouldEmptyCart() {
+        givenNow();
+        CartId cartId = cartId();
+        Cart cart = givenActiveCart(cartId);
+        cart.add(notStartedTraining(), clock, openTrainingService);
+        cart.add(notStartedTraining(), clock, openTrainingService);
+
+        service.empty(cartId.value());
+
+        thenSavedCart()
+                .hasId(cartId)
+                .hasTrainings(0);
     }
 
     @Test

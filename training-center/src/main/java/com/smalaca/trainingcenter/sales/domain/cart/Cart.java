@@ -32,7 +32,7 @@ public class Cart {
     @CollectionTable(name = "CART_ITEMS", joinColumns = @JoinColumn(name = "cart_id"))
     private Set<CartItem> items = new HashSet<>();
 
-    private Cart() {}
+    protected Cart() {}
 
     public static Cart active(CartId cartId) {
         Cart cart = new Cart();
@@ -81,6 +81,14 @@ public class Cart {
 
     public void block() {
         status = BLOCKED;
+    }
+
+    public void empty() {
+        items.clear();
+    }
+
+    public void unblock() {
+        status = ACTIVE;
     }
 
     @DomainDrivenDesign.Factory
