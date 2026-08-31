@@ -6,10 +6,10 @@ import com.smalaca.trainingcenter.sales.domain.money.Money;
 import java.math.BigDecimal;
 
 @DomainDrivenDesign.Policy
-public class CorporatePricingPolicy implements OfferPricingPolicy {
+class CorporatePricingPolicy implements OfferPricingPolicy {
     private final BigDecimal discountRate;
 
-    public CorporatePricingPolicy(BigDecimal discountRate) {
+    CorporatePricingPolicy(BigDecimal discountRate) {
         this.discountRate = discountRate;
     }
 

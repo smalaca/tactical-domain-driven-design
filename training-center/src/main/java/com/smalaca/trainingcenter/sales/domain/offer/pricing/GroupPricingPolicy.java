@@ -6,11 +6,11 @@ import com.smalaca.trainingcenter.sales.domain.money.Money;
 import java.math.BigDecimal;
 
 @DomainDrivenDesign.Policy
-public class GroupPricingPolicy implements OfferPricingPolicy {
+class GroupPricingPolicy implements OfferPricingPolicy {
     private final int minParticipants;
     private final BigDecimal discountRate;
 
-    public GroupPricingPolicy(int minParticipants, BigDecimal discountRate) {
+    GroupPricingPolicy(int minParticipants, BigDecimal discountRate) {
         this.minParticipants = minParticipants;
         this.discountRate = discountRate;
     }

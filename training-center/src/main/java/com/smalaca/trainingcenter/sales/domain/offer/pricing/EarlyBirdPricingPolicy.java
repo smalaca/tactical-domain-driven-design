@@ -7,11 +7,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @DomainDrivenDesign.Policy
-public class EarlyBirdPricingPolicy implements OfferPricingPolicy {
+class EarlyBirdPricingPolicy implements OfferPricingPolicy {
     private final LocalDateTime cutoff;
     private final BigDecimal discountRate;
 
-    public EarlyBirdPricingPolicy(LocalDateTime cutoff, BigDecimal discountRate) {
+    EarlyBirdPricingPolicy(LocalDateTime cutoff, BigDecimal discountRate) {
         this.cutoff = cutoff;
         this.discountRate = discountRate;
     }
