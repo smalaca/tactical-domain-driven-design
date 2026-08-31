@@ -13,4 +13,8 @@ public record OfferPricingParameters(
         int participants,
         CustomerType customerType,
         PromotionCode promotionCode) {
+
+    public OfferPricingParameters(TrainingId trainingId, Money basePrice, LocalDateTime requestedAt) {
+        this(trainingId, basePrice, requestedAt, 1, CustomerType.INDIVIDUAL, new PromotionCode(null));
+    }
 }

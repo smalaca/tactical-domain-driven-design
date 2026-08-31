@@ -6,6 +6,8 @@ import com.smalaca.trainingcenter.sales.domain.money.Money;
 import com.smalaca.trainingcenter.sales.domain.offer.Offer;
 import com.smalaca.trainingcenter.sales.domain.offer.OfferAssertion;
 import com.smalaca.trainingcenter.sales.domain.offer.OfferRepository;
+import com.smalaca.trainingcenter.sales.domain.offer.pricing.OfferPricingParameters;
+import com.smalaca.trainingcenter.sales.domain.offer.pricing.OfferPricingPolicy;
 import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTraining;
 import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTrainingService;
 import com.smalaca.trainingcenter.sales.domain.opentrainingservice.TrainingStatus;
@@ -24,6 +26,7 @@ import static com.smalaca.trainingcenter.sales.domain.cart.CartAssertion.assertT
 import static com.smalaca.trainingcenter.sales.domain.opentrainingservice.TrainingStatus.NOT_STARTED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.mock;
@@ -34,7 +37,8 @@ class CartApplicationServiceTest {
     private final OfferRepository offerRepository = mock(OfferRepository.class);
     private final Clock clock = mock(Clock.class);
     private final OpenTrainingService openTrainingService = mock(OpenTrainingService.class);
-    private final CartApplicationService service = new CartApplicationService(cartRepository, offerRepository, clock, openTrainingService);
+    private final OfferPricingPolicy offerPricingPolicy = mock(OfferPricingPolicy.class);
+    private final CartApplicationService service = new CartApplicationService(cartRepository, offerRepository, clock, openTrainingService, offerPricingPolicy);
 
     @Test
     void shouldAddTrainingToCart() {
@@ -246,6 +250,7 @@ class CartApplicationServiceTest {
         TrainingId trainingIdTwo = notStartedTraining(money(200));
         cart.add(trainingIdOne, clock, openTrainingService);
         cart.add(trainingIdTwo, clock, openTrainingService);
+        given(offerPricingPolicy.apply(any(), any())).willAnswer(invocation -> invocation.getArgument(1));
 
         service.choose(new ChooseTrainingsCommand(cartId.value(), List.of(trainingIdOne.value(), trainingIdTwo.value())));
 
@@ -258,6 +263,26 @@ class CartApplicationServiceTest {
                 .hasOfferId()
                 .hasCreatedAt(createdAt)
                 .hasValidTo(validTo);
+    }
+
+    @Test
+    void shouldApplyOfferPricingPolicyWhenCreatingOffer() {
+        LocalDateTime createdAt = LocalDateTime.of(2026, 6, 15, 21, 30);
+        givenNow(createdAt);
+        CartId cartId = cartId();
+        Cart cart = givenActiveCart(cartId);
+        TrainingId trainingId = notStartedTraining(money(100));
+        cart.add(trainingId, clock, openTrainingService);
+        OfferPricingParameters expectedParameters = new OfferPricingParameters(trainingId, money(100), createdAt);
+        given(offerPricingPolicy.apply(expectedParameters, money(100))).willReturn(money(80));
+
+        service.choose(new ChooseTrainingsCommand(cartId.value(), List.of(trainingId.value())));
+
+        thenSavedOffer()
+                .isCreated()
+                .hasCartId(cartId)
+                .hasItems(1)
+                .hasItem(trainingId, money(80));
     }
 
     @Test

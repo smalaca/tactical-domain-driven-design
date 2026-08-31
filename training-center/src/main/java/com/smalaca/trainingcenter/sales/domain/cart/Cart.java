@@ -2,7 +2,10 @@ package com.smalaca.trainingcenter.sales.domain.cart;
 
 import com.smalaca.annotations.architecture.DomainDrivenDesign;
 import com.smalaca.trainingcenter.sales.domain.clock.Clock;
+import com.smalaca.trainingcenter.sales.domain.money.Money;
 import com.smalaca.trainingcenter.sales.domain.offer.Offer;
+import com.smalaca.trainingcenter.sales.domain.offer.pricing.OfferPricingParameters;
+import com.smalaca.trainingcenter.sales.domain.offer.pricing.OfferPricingPolicy;
 import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTraining;
 import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTrainingService;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
@@ -100,7 +103,9 @@ public class Cart {
     }
 
     @DomainDrivenDesign.Factory
-    public Offer choose(List<TrainingId> trainings, OpenTrainingService openTrainingService, Clock clock) {
+    public Offer choose(
+            List<TrainingId> trainings, OpenTrainingService openTrainingService,
+            OfferPricingPolicy offerPricingPolicy, Clock clock) {
         if (items.isEmpty()) {
             throw CartException.cannotCreateOfferFromEmptyCart(cartId);
         }
@@ -110,11 +115,13 @@ public class Cart {
         }
 
         Offer.Builder builder = new Offer.Builder(cartId, clock);
-        trainings.forEach(trainingId -> addToOffer(builder, trainingId, openTrainingService));
+        trainings.forEach(trainingId -> addToOffer(builder, trainingId, openTrainingService, offerPricingPolicy, clock));
         return builder.build();
     }
 
-    private void addToOffer(Offer.Builder builder, TrainingId trainingId, OpenTrainingService openTrainingService) {
+    private void addToOffer(
+            Offer.Builder builder, TrainingId trainingId,
+            OpenTrainingService openTrainingService, OfferPricingPolicy offerPricingPolicy, Clock clock) {
         if (doesNotHave(trainingId)) {
             throw CartException.cannotChooseTrainingOutsideCart(cartId, trainingId);
         }
@@ -126,7 +133,10 @@ public class Cart {
             throw CartException.trainingAlreadyStarted(cartId, trainingId);
         }
 
-        builder.item(openTraining.trainingId(), openTraining.price());
+        OfferPricingParameters parameters = new OfferPricingParameters(trainingId, openTraining.price(), clock.now());
+        Money price = offerPricingPolicy.apply(parameters, openTraining.price());
+
+        builder.item(openTraining.trainingId(), price);
     }
 
     private boolean doesNotHave(TrainingId trainingId) {
