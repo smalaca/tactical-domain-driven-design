@@ -10,9 +10,9 @@ import com.smalaca.trainingcenter.sales.domain.clock.Clock;
 import com.smalaca.trainingcenter.sales.domain.offer.Offer;
 import com.smalaca.trainingcenter.sales.domain.offer.OfferId;
 import com.smalaca.trainingcenter.sales.domain.offer.OfferRepository;
+import com.smalaca.trainingcenter.sales.domain.offer.pricing.OfferPricingPolicy;
 import com.smalaca.trainingcenter.sales.domain.opentrainingservice.OpenTrainingService;
 import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,18 +21,22 @@ import java.util.stream.Collectors;
 @DomainDrivenDesign.ApplicationLayer
 @PortsAndAdaptersArchitecture.DrivingPort
 @CommandQueryResponsibilitySegregation.Command
-@Service
 public class CartApplicationService {
     private final CartRepository cartRepository;
     private final OfferRepository offerRepository;
     private final Clock clock;
     private final OpenTrainingService openTrainingService;
+    private final OfferPricingPolicy offerPricingPolicy;
 
-    CartApplicationService(CartRepository cartRepository, OfferRepository offerRepository, Clock clock, OpenTrainingService openTrainingService) {
+    CartApplicationService(
+            CartRepository cartRepository, OfferRepository offerRepository,
+            Clock clock, OpenTrainingService openTrainingService,
+            OfferPricingPolicy offerPricingPolicy) {
         this.cartRepository = cartRepository;
         this.offerRepository = offerRepository;
         this.clock = clock;
         this.openTrainingService = openTrainingService;
+        this.offerPricingPolicy = offerPricingPolicy;
     }
 
     public void addTraining(AddTrainingToCartCommand command) {
@@ -87,7 +91,7 @@ public class CartApplicationService {
         List<TrainingId> trainingIds = asTrainingIds(command);
         Cart cart = cartRepository.findBy(cartId);
 
-        Offer offer = cart.choose(trainingIds, openTrainingService, clock);
+        Offer offer = cart.choose(trainingIds, openTrainingService, offerPricingPolicy, clock);
 
         offerRepository.save(offer);
 
