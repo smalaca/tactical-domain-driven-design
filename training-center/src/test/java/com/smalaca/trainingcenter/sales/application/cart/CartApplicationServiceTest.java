@@ -273,7 +273,7 @@ class CartApplicationServiceTest {
         Cart cart = givenActiveCart(cartId);
         TrainingId trainingId = notStartedTraining(money(100));
         cart.add(trainingId, clock, openTrainingService);
-        OfferPricingParameters expectedParameters = new OfferPricingParameters(trainingId, money(100), createdAt);
+        OfferPricingParameters expectedParameters = new OfferPricingParameters(createdAt);
         given(offerPricingPolicy.apply(expectedParameters, money(100))).willReturn(money(80));
 
         service.choose(new ChooseTrainingsCommand(cartId.value(), List.of(trainingId.value())));

@@ -2,12 +2,10 @@ package com.smalaca.trainingcenter.sales.domain.offer.pricing;
 
 import com.smalaca.trainingcenter.sales.domain.money.Money;
 import com.smalaca.trainingcenter.sales.domain.promotion.PromotionCode;
-import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,7 +15,7 @@ class CorporatePricingPolicyTest {
     @Test
     void shouldApplyCorporateDiscountWhenCustomerIsCorporate() {
         Money basePrice = new Money(BigDecimal.valueOf(100));
-        OfferPricingParameters parameters = parameters(CustomerType.CORPORATE, basePrice);
+        OfferPricingParameters parameters = parameters(CustomerType.CORPORATE);
 
         Money actual = policy.apply(parameters, basePrice);
 
@@ -27,7 +25,7 @@ class CorporatePricingPolicyTest {
     @Test
     void shouldLeavePriceUnchangedWhenCustomerIsIndividual() {
         Money basePrice = new Money(BigDecimal.valueOf(100));
-        OfferPricingParameters parameters = parameters(CustomerType.INDIVIDUAL, basePrice);
+        OfferPricingParameters parameters = parameters(CustomerType.INDIVIDUAL);
 
         Money actual = policy.apply(parameters, basePrice);
 
@@ -37,17 +35,15 @@ class CorporatePricingPolicyTest {
     @Test
     void shouldLeavePriceUnchangedWhenCustomerTypeIsNull() {
         Money basePrice = new Money(BigDecimal.valueOf(100));
-        OfferPricingParameters parameters = parameters(null, basePrice);
+        OfferPricingParameters parameters = parameters(null);
 
         Money actual = policy.apply(parameters, basePrice);
 
         assertThat(actual.amount()).isEqualByComparingTo(BigDecimal.valueOf(100));
     }
 
-    private OfferPricingParameters parameters(CustomerType customerType, Money basePrice) {
+    private OfferPricingParameters parameters(CustomerType customerType) {
         return new OfferPricingParameters(
-                new TrainingId(UUID.randomUUID()),
-                basePrice,
                 LocalDateTime.of(2026, 7, 1, 10, 0),
                 1,
                 customerType,

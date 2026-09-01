@@ -2,13 +2,11 @@ package com.smalaca.trainingcenter.sales.domain.offer.pricing;
 
 import com.smalaca.trainingcenter.sales.domain.money.Money;
 import com.smalaca.trainingcenter.sales.domain.promotion.PromotionCode;
-import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,8 +20,6 @@ class CompositeOfferPricingPolicyTest {
         ));
 
         OfferPricingParameters parameters = new OfferPricingParameters(
-                new TrainingId(UUID.randomUUID()),
-                new Money(BigDecimal.valueOf(100)),
                 LocalDateTime.of(2026, 5, 1, 10, 0),
                 1,
                 CustomerType.CORPORATE,

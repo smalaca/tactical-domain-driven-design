@@ -133,7 +133,7 @@ public class Cart {
             throw CartException.trainingAlreadyStarted(cartId, trainingId);
         }
 
-        OfferPricingParameters parameters = new OfferPricingParameters(trainingId, openTraining.price(), clock.now());
+        OfferPricingParameters parameters = new OfferPricingParameters(clock.now());
         Money price = offerPricingPolicy.apply(parameters, openTraining.price());
 
         builder.item(openTraining.trainingId(), price);

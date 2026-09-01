@@ -1,13 +1,10 @@
 package com.smalaca.trainingcenter.sales.domain.offer.pricing;
 
 import com.smalaca.trainingcenter.sales.domain.money.Money;
-import com.smalaca.trainingcenter.sales.domain.promotion.PromotionCode;
-import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,7 +17,7 @@ class EarlyBirdPricingPolicyTest {
     @Test
     void shouldApplyEarlyBirdDiscountWhenRequestedBeforeCutoff() {
         Money basePrice = new Money(BigDecimal.valueOf(100));
-        OfferPricingParameters parameters = parameters(LocalDateTime.of(2026, 5, 1, 10, 0), basePrice);
+        OfferPricingParameters parameters = parameters(LocalDateTime.of(2026, 5, 1, 10, 0));
 
         Money actual = policy.apply(parameters, basePrice);
 
@@ -30,7 +27,7 @@ class EarlyBirdPricingPolicyTest {
     @Test
     void shouldLeavePriceUnchangedWhenRequestedOnOrAfterCutoff() {
         Money basePrice = new Money(BigDecimal.valueOf(100));
-        OfferPricingParameters parameters = parameters(LocalDateTime.of(2026, 6, 1, 0, 0), basePrice);
+        OfferPricingParameters parameters = parameters(LocalDateTime.of(2026, 6, 1, 0, 0));
 
         Money actual = policy.apply(parameters, basePrice);
 
@@ -40,21 +37,14 @@ class EarlyBirdPricingPolicyTest {
     @Test
     void shouldLeavePriceUnchangedWhenRequestedAtIsNull() {
         Money basePrice = new Money(BigDecimal.valueOf(100));
-        OfferPricingParameters parameters = parameters(null, basePrice);
+        OfferPricingParameters parameters = parameters(null);
 
         Money actual = policy.apply(parameters, basePrice);
 
         assertThat(actual.amount()).isEqualByComparingTo(BigDecimal.valueOf(100));
     }
 
-    private OfferPricingParameters parameters(LocalDateTime requestedAt, Money basePrice) {
-        return new OfferPricingParameters(
-                new TrainingId(UUID.randomUUID()),
-                basePrice,
-                requestedAt,
-                1,
-                CustomerType.INDIVIDUAL,
-                new PromotionCode(null)
-        );
+    private OfferPricingParameters parameters(LocalDateTime requestedAt) {
+        return new OfferPricingParameters(requestedAt);
     }
 }

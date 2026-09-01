@@ -3,13 +3,11 @@ package com.smalaca.trainingcenter.sales.domain.offer.pricing;
 import com.smalaca.trainingcenter.sales.domain.money.Money;
 import com.smalaca.trainingcenter.sales.domain.promotion.PromotionCode;
 import com.smalaca.trainingcenter.sales.domain.promotion.PromotionService;
-import com.smalaca.trainingcenter.sales.domain.training.TrainingId;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
@@ -23,7 +21,7 @@ class PromotionPricingPolicyTest {
         PromotionCode promotionCode = new PromotionCode("PROMO10");
         given(promotionService.isAvailable(promotionCode)).willReturn(true);
         Money basePrice = new Money(BigDecimal.valueOf(100));
-        OfferPricingParameters parameters = parameters(promotionCode, basePrice);
+        OfferPricingParameters parameters = parameters(promotionCode);
 
         Money actual = policy.apply(parameters, basePrice);
 
@@ -35,7 +33,7 @@ class PromotionPricingPolicyTest {
         PromotionCode promotionCode = new PromotionCode("PROMO10");
         given(promotionService.isAvailable(promotionCode)).willReturn(false);
         Money basePrice = new Money(BigDecimal.valueOf(100));
-        OfferPricingParameters parameters = parameters(promotionCode, basePrice);
+        OfferPricingParameters parameters = parameters(promotionCode);
 
         Money actual = policy.apply(parameters, basePrice);
 
@@ -45,7 +43,7 @@ class PromotionPricingPolicyTest {
     @Test
     void shouldLeavePriceUnchangedWhenPromotionCodeIsNone() {
         Money basePrice = new Money(BigDecimal.valueOf(100));
-        OfferPricingParameters parameters = parameters(new PromotionCode(null), basePrice);
+        OfferPricingParameters parameters = parameters(new PromotionCode(null));
 
         Money actual = policy.apply(parameters, basePrice);
 
@@ -55,7 +53,7 @@ class PromotionPricingPolicyTest {
     @Test
     void shouldLeavePriceUnchangedWhenPromotionCodeIsEmpty() {
         Money basePrice = new Money(BigDecimal.valueOf(100));
-        OfferPricingParameters parameters = parameters(new PromotionCode("   "), basePrice);
+        OfferPricingParameters parameters = parameters(new PromotionCode("   "));
 
         Money actual = policy.apply(parameters, basePrice);
 
@@ -65,17 +63,15 @@ class PromotionPricingPolicyTest {
     @Test
     void shouldLeavePriceUnchangedWhenPromotionCodeIsNull() {
         Money basePrice = new Money(BigDecimal.valueOf(100));
-        OfferPricingParameters parameters = parameters(null, basePrice);
+        OfferPricingParameters parameters = parameters(null);
 
         Money actual = policy.apply(parameters, basePrice);
 
         assertThat(actual.amount()).isEqualByComparingTo(BigDecimal.valueOf(100));
     }
 
-    private OfferPricingParameters parameters(PromotionCode promotionCode, Money basePrice) {
+    private OfferPricingParameters parameters(PromotionCode promotionCode) {
         return new OfferPricingParameters(
-                new TrainingId(UUID.randomUUID()),
-                basePrice,
                 LocalDateTime.of(2026, 7, 1, 10, 0),
                 1,
                 CustomerType.INDIVIDUAL,
